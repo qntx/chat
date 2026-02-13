@@ -18,18 +18,35 @@ import {
   PencilIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  WalletIcon,
 } from 'lucide-react'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { WALLET_PROMPT_MARKER } from '@/providers/ChatProvider'
 
 const THREAD_MAX_W = '42rem'
 
 /** Bridge MarkdownTextPrimitive to the TextMessagePartComponent slot. */
 const MarkdownText: FC<{ text: string; status: unknown }> = () => <MarkdownTextPrimitive smooth />
 
+/** Text part that detects wallet-not-connected marker and renders a connect button. */
+const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }) => {
+  if (text.startsWith(WALLET_PROMPT_MARKER)) {
+    const cleanText = text.slice(WALLET_PROMPT_MARKER.length)
+    return (
+      <div>
+        <p className="whitespace-pre-line">{cleanText}</p>
+        <ConnectWalletButton />
+      </div>
+    )
+  }
+  return <MarkdownText text={text} status={status} />
+}
+
 // Main thread
 export function ChatThread() {
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col bg-background">
-      <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth px-4 pt-4">
+      <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth px-4 pt-14">
         <AuiIf condition={(s) => s.thread.isEmpty}>
           <ThreadWelcome />
         </AuiIf>
@@ -61,8 +78,41 @@ const ThreadWelcome: FC = () => (
         </p>
       </div>
     </div>
+    <ThreadSuggestions />
   </div>
 )
+
+// Suggestion cards — two-column grid matching the composer width
+const ThreadSuggestions: FC = () => (
+  <div className="grid w-full grid-cols-2 gap-2 pb-4">
+    <ThreadPrimitive.Suggestion prompt="What is x402 and how does pay-per-message work?" send asChild>
+      <button className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex w-full flex-col items-start gap-1 rounded-2xl border border-border/60 px-4 py-3 text-left text-sm transition-colors duration-200 hover:bg-muted">
+        <span className="font-medium">What is x402?</span>
+        <span className="text-muted-foreground">and how does pay-per-message work</span>
+      </button>
+    </ThreadPrimitive.Suggestion>
+    <ThreadPrimitive.Suggestion prompt="Explain how crypto wallets connect to AI chat" send asChild>
+      <button className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex w-full flex-col items-start gap-1 rounded-2xl border border-border/60 px-4 py-3 text-left text-sm transition-colors delay-75 duration-200 hover:bg-muted">
+        <span className="font-medium">Explain crypto wallets</span>
+        <span className="text-muted-foreground">and how they connect to AI chat</span>
+      </button>
+    </ThreadPrimitive.Suggestion>
+  </div>
+)
+
+// Connect wallet button rendered inside assistant messages when wallet is not connected
+const ConnectWalletButton: FC = () => {
+  const { openConnectModal } = useConnectModal()
+  return (
+    <button
+      onClick={openConnectModal}
+      className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-accent/50 px-4 py-2 text-sm font-medium text-foreground/90 transition-colors hover:bg-accent"
+    >
+      <WalletIcon className="size-4" />
+      Connect Wallet
+    </button>
+  )
+}
 
 // Scroll to bottom
 const ScrollToBottom: FC = () => (
@@ -113,7 +163,7 @@ const Composer: FC = () => (
 // Messages
 const UserMessage: FC = () => (
   <MessagePrimitive.Root
-    className="group mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 [&>*]:col-start-2"
+    className="animate-in fade-in slide-in-from-bottom-1 group mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
     style={{ maxWidth: THREAD_MAX_W }}
     data-role="user"
   >
@@ -131,12 +181,12 @@ const UserMessage: FC = () => (
 
 const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
-    className="group mx-auto grid w-full auto-rows-auto grid-cols-[auto_1fr_minmax(72px,auto)] gap-y-2 px-2 py-3 [&>*]:col-start-2"
+    className="animate-in fade-in slide-in-from-bottom-1 group mx-auto grid w-full auto-rows-auto grid-cols-[auto_1fr_minmax(72px,auto)] gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
     style={{ maxWidth: THREAD_MAX_W }}
     data-role="assistant"
   >
     <div className="col-start-2 min-w-0 text-sm leading-7">
-      <MessagePrimitive.Content components={{ Text: MarkdownText }} />
+      <MessagePrimitive.Content components={{ Text: WalletAwareText }} />
     </div>
     <AssistantActionBar />
     <BranchPicker className="col-span-full col-start-1 row-start-3" />

@@ -13,7 +13,7 @@ const GITHUB_URL = 'https://github.com/qntx/chat'
 
 export function Header() {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/40 px-6">
+    <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-14 items-center justify-between px-6 [&>*]:pointer-events-auto">
       {/* Brand */}
       <div className="flex items-center gap-3">
         <HeaderIconLink href={GITHUB_URL} label="GitHub">

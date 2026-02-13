@@ -7,11 +7,9 @@ export default function App() {
   return (
     <WalletProvider>
       <ChatProvider>
-        <div className="flex h-dvh flex-col">
+        <div className="relative h-dvh">
           <Header />
-          <main className="flex-1 overflow-hidden">
-            <ChatThread />
-          </main>
+          <ChatThread />
         </div>
       </ChatProvider>
     </WalletProvider>

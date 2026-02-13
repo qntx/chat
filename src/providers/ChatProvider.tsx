@@ -8,6 +8,9 @@ import { useX402Fetch } from '@/hooks/use-x402-fetch'
 import { createX402ChatAdapter } from '@/lib/x402'
 import { DEFAULT_MODEL } from '@/lib/config'
 
+/** Marker prefix used by ChatThread to detect wallet-not-connected messages */
+export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
+
 /** Fallback adapter shown when no wallet is connected */
 const disconnectedAdapter: ChatModelAdapter = {
   async *run() {
@@ -15,7 +18,7 @@ const disconnectedAdapter: ChatModelAdapter = {
       content: [
         {
           type: 'text' as const,
-          text: '⚠️ Please connect your wallet first using the button in the top-right corner.\n\nOnce connected, each message will require a USDC micropayment via the x402 protocol.',
+          text: `${WALLET_PROMPT_MARKER}Please connect your wallet to start chatting. Each message requires a small USDC micropayment via the x402 protocol.`,
         },
       ],
       status: { type: 'complete' as const, reason: 'stop' as const },
