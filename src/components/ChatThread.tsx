@@ -4,184 +4,216 @@ import {
   MessagePrimitive,
   BranchPickerPrimitive,
   ActionBarPrimitive,
+  AuiIf,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import type { FC } from "react";
-import { ArrowDown, Send, Square } from "lucide-react";
+import {
+  ArrowDownIcon,
+  SendIcon,
+  SquareIcon,
+  CopyIcon,
+  CheckIcon,
+  RefreshCwIcon,
+  PencilIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react";
 
 /**
- * Wrapper to bridge MarkdownTextPrimitive (reads text from context)
- * with the TextMessagePartComponent slot interface.
+ * Bridge MarkdownTextPrimitive (reads from context) to the
+ * TextMessagePartComponent slot interface.
  */
 const MarkdownText: FC<{ text: string; status: unknown }> = () => (
   <MarkdownTextPrimitive smooth />
 );
 
-/**
- * Main chat thread component composed from assistant-ui primitives.
- */
+/** Full chat thread — minimalist layout following shadcn patterns. */
 export function ChatThread() {
   return (
-    <ThreadPrimitive.Root className="flex h-full flex-col">
-      <ThreadPrimitive.Viewport className="flex flex-1 flex-col items-center overflow-y-auto scroll-smooth">
-        <ThreadPrimitive.Empty>
-          <EmptyState />
-        </ThreadPrimitive.Empty>
+    <ThreadPrimitive.Root
+      className="flex h-full flex-col bg-[hsl(var(--background))]"
+      style={{ ["--thread-max-width" as string]: "42rem" }}
+    >
+      <ThreadPrimitive.Viewport className="relative flex flex-1 flex-col overflow-y-auto scroll-smooth px-4 pt-4">
+        <AuiIf condition={(s) => s.thread.isEmpty}>
+          <ThreadWelcome />
+        </AuiIf>
 
         <ThreadPrimitive.Messages
-          components={{
-            UserMessage,
-            AssistantMessage,
-          }}
+          components={{ UserMessage, AssistantMessage }}
         />
 
-        <div className="min-h-8 flex-shrink-0" />
+        <ThreadPrimitive.ViewportFooter className="sticky bottom-0 mx-auto mt-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-4 pb-4 md:pb-6">
+          <ScrollToBottom />
+          <Composer />
+        </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
-
-      <div className="sticky bottom-0 mx-auto flex w-full max-w-2xl flex-col gap-2 px-4 pb-4">
-        <ThreadPrimitive.ScrollToBottom asChild>
-          <button
-            className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] shadow-sm transition-colors hover:bg-[hsl(var(--accent))]"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="h-4 w-4" />
-          </button>
-        </ThreadPrimitive.ScrollToBottom>
-
-        <Composer />
-      </div>
     </ThreadPrimitive.Root>
   );
 }
 
-/** Empty state shown when no messages exist */
-function EmptyState() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(var(--primary))] text-2xl font-bold text-[hsl(var(--primary-foreground))]">
-        x4
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold">Welcome to x402 Chat</h2>
-        <p className="mt-1 max-w-sm text-sm text-[hsl(var(--muted-foreground))]">
-          Pay-per-message AI chat powered by x402 stablecoin micropayments.
-          Connect your wallet and start chatting.
+/** Welcome screen — clean, centered, minimal. */
+const ThreadWelcome: FC = () => (
+  <div className="mx-auto my-auto flex w-full max-w-[var(--thread-max-width)] grow flex-col">
+    <div className="flex w-full grow flex-col items-center justify-center">
+      <div className="flex size-full flex-col justify-center px-4">
+        <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both font-semibold text-2xl duration-200">
+          Hello there!
+        </h1>
+        <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-[hsl(var(--muted-foreground))] text-xl delay-75 duration-200">
+          How can I help you today?
         </p>
       </div>
     </div>
-  );
-}
+  </div>
+);
 
-/** Message composer with input and send/cancel buttons */
-function Composer() {
-  return (
-    <ComposerPrimitive.Root className="flex items-end gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-sm focus-within:ring-2 focus-within:ring-[hsl(var(--ring))]">
-      <ComposerPrimitive.Input
-        autoFocus
-        placeholder="Type a message…"
-        rows={1}
-        className="max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-[hsl(var(--muted-foreground))]"
-      />
-      <ComposerPrimitive.Cancel asChild>
-        <button
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] transition-colors hover:opacity-80"
-          aria-label="Cancel"
-        >
-          <Square className="h-4 w-4" />
-        </button>
-      </ComposerPrimitive.Cancel>
-      <ComposerPrimitive.Send asChild>
-        <button
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-colors hover:opacity-80 disabled:opacity-30"
-          aria-label="Send"
-        >
-          <Send className="h-4 w-4" />
-        </button>
-      </ComposerPrimitive.Send>
-    </ComposerPrimitive.Root>
-  );
-}
+/** Scroll-to-bottom floating button. */
+const ScrollToBottom: FC = () => (
+  <ThreadPrimitive.ScrollToBottom asChild>
+    <button
+      className="absolute -top-12 z-10 self-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 text-[hsl(var(--muted-foreground))] shadow-sm transition-colors hover:bg-[hsl(var(--accent))] disabled:invisible"
+      aria-label="Scroll to bottom"
+    >
+      <ArrowDownIcon className="size-4" />
+    </button>
+  </ThreadPrimitive.ScrollToBottom>
+);
 
-/** User message bubble */
-function UserMessage() {
-  return (
-    <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-4 px-4">
-      <div className="col-start-2 row-start-1 max-w-xl rounded-2xl bg-[hsl(var(--primary))] px-4 py-2.5 text-sm text-[hsl(var(--primary-foreground))]">
+/** Message composer — clean border, focus ring, no glow. */
+const Composer: FC = () => (
+  <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-2xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-1 pt-2 outline-none transition-shadow focus-within:border-[hsl(var(--ring))] focus-within:ring-2 focus-within:ring-[hsl(var(--ring)/0.2)]">
+    <ComposerPrimitive.Input
+      placeholder="Send a message..."
+      className="mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm outline-none placeholder:text-[hsl(var(--muted-foreground))]"
+      rows={1}
+      autoFocus
+    />
+    <div className="relative mx-2 mb-2 flex items-center justify-end gap-2">
+      <AuiIf condition={(s) => s.thread.isRunning}>
+        <ComposerPrimitive.Cancel asChild>
+          <button
+            className="flex size-8 items-center justify-center rounded-full bg-[hsl(var(--foreground))] text-[hsl(var(--background))] transition-opacity hover:opacity-80"
+            aria-label="Stop"
+          >
+            <SquareIcon className="size-3.5" fill="currentColor" />
+          </button>
+        </ComposerPrimitive.Cancel>
+      </AuiIf>
+      <AuiIf condition={(s) => !s.thread.isRunning}>
+        <ComposerPrimitive.Send asChild>
+          <button
+            className="flex size-8 items-center justify-center rounded-full bg-[hsl(var(--foreground))] text-[hsl(var(--background))] transition-opacity hover:opacity-80 disabled:opacity-20"
+            aria-label="Send"
+          >
+            <SendIcon className="size-3.5" />
+          </button>
+        </ComposerPrimitive.Send>
+      </AuiIf>
+    </div>
+  </ComposerPrimitive.Root>
+);
+
+/** User message — right-aligned, muted background. */
+const UserMessage: FC = () => (
+  <MessagePrimitive.Root
+    className="group mx-auto grid w-full max-w-[var(--thread-max-width)] auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 [&>*]:col-start-2"
+    data-role="user"
+  >
+    <div className="relative col-start-2 min-w-0">
+      <div className="wrap-break-word rounded-2xl bg-[hsl(var(--muted))] px-4 py-2.5 text-sm text-[hsl(var(--foreground))]">
         <MessagePrimitive.Content />
       </div>
-      <UserActionBar />
-    </MessagePrimitive.Root>
-  );
-}
-
-/** Assistant message bubble with markdown rendering */
-function AssistantMessage() {
-  return (
-    <MessagePrimitive.Root className="grid w-full max-w-2xl auto-rows-auto grid-cols-[auto_minmax(72px,1fr)] gap-y-2 py-4 px-4">
-      <div className="col-start-1 row-start-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--secondary))] text-xs font-bold text-[hsl(var(--secondary-foreground))]">
-        AI
+      <div className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
+        <UserActionBar />
       </div>
-      <div className="col-start-2 row-start-1 max-w-xl rounded-2xl bg-[hsl(var(--secondary))] px-4 py-2.5 text-sm">
-        <MessagePrimitive.Content
-          components={{
-            Text: MarkdownText,
-          }}
-        />
-      </div>
-      <AssistantActionBar />
-    </MessagePrimitive.Root>
-  );
-}
+    </div>
+    <BranchPicker className="col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
+  </MessagePrimitive.Root>
+);
 
-/** Action bar for user messages (edit) */
-function UserActionBar() {
-  return (
-    <ActionBarPrimitive.Root
-      hideWhenRunning
-      autohide="not-last"
-      className="col-start-1 row-start-1 flex items-end gap-1 self-end"
-    >
-      <ActionBarPrimitive.Edit asChild>
-        <ActionButton label="Edit" />
-      </ActionBarPrimitive.Edit>
-    </ActionBarPrimitive.Root>
-  );
-}
+/** Assistant message — left-aligned, plain text. */
+const AssistantMessage: FC = () => (
+  <MessagePrimitive.Root
+    className="group mx-auto grid w-full max-w-[var(--thread-max-width)] auto-rows-auto grid-cols-[auto_1fr_minmax(72px,auto)] gap-y-2 px-2 py-3 [&>*]:col-start-2"
+    data-role="assistant"
+  >
+    <div className="col-start-2 min-w-0 text-sm leading-7">
+      <MessagePrimitive.Content components={{ Text: MarkdownText }} />
+    </div>
+    <AssistantActionBar />
+    <BranchPicker className="col-span-full col-start-1 row-start-3" />
+  </MessagePrimitive.Root>
+);
 
-/** Action bar for assistant messages (copy, reload, branch) */
-function AssistantActionBar() {
-  return (
-    <ActionBarPrimitive.Root
-      autohide="not-last"
-      className="col-start-2 row-start-2 -mt-1 flex items-center gap-1"
-    >
-      <ActionBarPrimitive.Copy asChild>
-        <ActionButton label="Copy" />
-      </ActionBarPrimitive.Copy>
-      <ActionBarPrimitive.Reload asChild>
-        <ActionButton label="Retry" />
-      </ActionBarPrimitive.Reload>
-      <BranchPickerPrimitive.Root
-        hideWhenSingleBranch
-        className="inline-flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]"
-      >
-        <BranchPickerPrimitive.Previous asChild>
-          <ActionButton label="←" />
-        </BranchPickerPrimitive.Previous>
-        <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
-        <BranchPickerPrimitive.Next asChild>
-          <ActionButton label="→" />
-        </BranchPickerPrimitive.Next>
-      </BranchPickerPrimitive.Root>
-    </ActionBarPrimitive.Root>
-  );
-}
+/** User action bar — edit button on hover. */
+const UserActionBar: FC = () => (
+  <ActionBarPrimitive.Root
+    hideWhenRunning
+    autohide="not-last"
+    className="flex flex-col items-end"
+  >
+    <ActionBarPrimitive.Edit asChild>
+      <IconBtn tooltip="Edit">
+        <PencilIcon />
+      </IconBtn>
+    </ActionBarPrimitive.Edit>
+  </ActionBarPrimitive.Root>
+);
 
-/** Small utility button used in action bars */
-function ActionButton({ label }: { label: string }) {
-  return (
-    <button className="rounded px-1.5 py-0.5 text-xs text-[hsl(var(--muted-foreground))] transition-colors hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]">
-      {label}
-    </button>
-  );
-}
+/** Assistant action bar — copy + reload on hover. */
+const AssistantActionBar: FC = () => (
+  <ActionBarPrimitive.Root
+    hideWhenRunning
+    autohide="not-last"
+    className="col-start-2 row-start-2 -ml-1 flex gap-1 text-[hsl(var(--muted-foreground))]"
+  >
+    <ActionBarPrimitive.Copy asChild>
+      <IconBtn tooltip="Copy">
+        <AuiIf condition={(s) => s.message.isCopied}>
+          <CheckIcon />
+        </AuiIf>
+        <AuiIf condition={(s) => !s.message.isCopied}>
+          <CopyIcon />
+        </AuiIf>
+      </IconBtn>
+    </ActionBarPrimitive.Copy>
+    <ActionBarPrimitive.Reload asChild>
+      <IconBtn tooltip="Retry">
+        <RefreshCwIcon />
+      </IconBtn>
+    </ActionBarPrimitive.Reload>
+  </ActionBarPrimitive.Root>
+);
+
+/** Branch picker — shown only when multiple branches exist. */
+const BranchPicker: FC<{ className?: string }> = ({ className }) => (
+  <BranchPickerPrimitive.Root
+    hideWhenSingleBranch
+    className={`inline-flex items-center text-[hsl(var(--muted-foreground))] text-xs ${className ?? ""}`}
+  >
+    <BranchPickerPrimitive.Previous asChild>
+      <IconBtn tooltip="Previous"><ChevronLeftIcon /></IconBtn>
+    </BranchPickerPrimitive.Previous>
+    <span className="font-medium">
+      <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
+    </span>
+    <BranchPickerPrimitive.Next asChild>
+      <IconBtn tooltip="Next"><ChevronRightIcon /></IconBtn>
+    </BranchPickerPrimitive.Next>
+  </BranchPickerPrimitive.Root>
+);
+
+/** Minimal icon button. */
+const IconBtn: FC<{ tooltip: string; children: React.ReactNode }> = ({
+  tooltip,
+  children,
+}) => (
+  <button
+    className="flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] [&_svg]:size-3.5"
+    aria-label={tooltip}
+  >
+    {children}
+  </button>
+);

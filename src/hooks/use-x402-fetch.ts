@@ -19,6 +19,9 @@ export function useX402Fetch() {
   const fetchWithPayment = useMemo(() => {
     if (!walletClient?.account) return null;
 
+    const chainId = walletClient.chain.id;
+    console.log("[x402] Registering for chain:", chainId);
+
     // Adapt viem WalletClient to x402 ClientEvmSigner interface
     const signer = toClientEvmSigner({
       address: walletClient.account.address,
@@ -36,15 +39,22 @@ export function useX402Fetch() {
     const scheme = new ExactEvmScheme(signer);
     const client = new x402Client();
 
-    // Register for all supported EVM networks
-    client.register("eip155:8453", scheme);      // Base mainnet
-    client.register("eip155:84532", scheme);     // Base Sepolia
-    client.register("eip155:1", scheme);          // Ethereum mainnet
-    client.register("eip155:10", scheme);         // Optimism
-    client.register("eip155:42161", scheme);      // Arbitrum
-    client.register("eip155:137", scheme);        // Polygon
+    // Register only for the wallet's active chain to avoid chainId mismatch
+    // when MetaMask rejects signTypedData for a different chain.
+    client.register(`eip155:${chainId}`, scheme);
 
-    return wrapFetchWithPayment(globalThis.fetch, client);
+    // Wrap globalThis.fetch to strip access-control-* request headers that
+    // @x402/fetch incorrectly adds (Access-Control-Expose-Headers is a
+    // response-only header but x402 sets it on the retry request, breaking CORS).
+    const browserSafeFetch: typeof globalThis.fetch = (input, init) => {
+      const req = new Request(input, init);
+      for (const key of [...req.headers.keys()]) {
+        if (key.startsWith("access-control")) req.headers.delete(key);
+      }
+      return globalThis.fetch(req);
+    };
+
+    return wrapFetchWithPayment(browserSafeFetch, client);
   }, [walletClient]);
 
   return {

@@ -2,20 +2,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-          x4
-        </div>
-        <div>
-          <h1 className="text-base font-semibold leading-tight">x402 Chat</h1>
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            Pay-per-message AI chat
-          </p>
-        </div>
-      </div>
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-[hsl(var(--border))] px-4">
+      <span className="text-sm font-medium text-[hsl(var(--foreground)/0.9)]">
+        x402 Chat
+      </span>
       <ConnectButton
-        showBalance={true}
+        showBalance={false}
         chainStatus="icon"
         accountStatus="address"
       />

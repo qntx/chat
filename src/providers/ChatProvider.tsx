@@ -11,13 +11,15 @@ import { DEFAULT_MODEL } from "@/lib/constants";
 /** Fallback adapter used when no wallet is connected */
 const disconnectedAdapter: ChatModelAdapter = {
   async *run() {
+    console.log("[ChatProvider] Wallet not connected, using disconnected adapter");
     yield {
       content: [
         {
           type: "text" as const,
-          text: "Please connect your wallet to start chatting.",
+          text: "⚠️ Please connect your wallet first using the button in the top-right corner.\n\nOnce connected, each message will require a USDC micropayment via the x402 protocol.",
         },
       ],
+      status: { type: "complete" as const, reason: "stop" as const },
     };
   },
 };

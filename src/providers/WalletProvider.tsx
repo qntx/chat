@@ -12,7 +12,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: "#3b82f6" })}>
+        <RainbowKitProvider
+          theme={darkTheme({ borderRadius: "medium", fontStack: "system" })}
+          initialChain={143}
+          modalSize="compact"
+        >
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
