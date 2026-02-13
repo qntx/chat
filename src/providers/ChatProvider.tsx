@@ -5,13 +5,12 @@ import {
   type ChatModelAdapter,
 } from "@assistant-ui/react";
 import { useX402Fetch } from "@/hooks/use-x402-fetch";
-import { createX402ChatAdapter } from "@/lib/x402-adapter";
-import { DEFAULT_MODEL } from "@/lib/constants";
+import { createX402ChatAdapter } from "@/lib/x402";
+import { DEFAULT_MODEL } from "@/lib/config";
 
-/** Fallback adapter used when no wallet is connected */
+/** Fallback adapter shown when no wallet is connected */
 const disconnectedAdapter: ChatModelAdapter = {
   async *run() {
-    console.log("[ChatProvider] Wallet not connected, using disconnected adapter");
     yield {
       content: [
         {
@@ -26,7 +25,7 @@ const disconnectedAdapter: ChatModelAdapter = {
 
 /**
  * Provides the assistant-ui runtime backed by the x402 LLM gateway.
- * Falls back to a static message when the wallet is not connected.
+ * Falls back to a static prompt when no wallet is connected.
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { fetchWithPayment } = useX402Fetch();

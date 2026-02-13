@@ -1,42 +1,33 @@
 @import "tailwindcss";
 @import "@assistant-ui/react-markdown/styles/dot.css";
 
-/* ── Minimal dark palette (shadcn-compatible) ────────────────── */
-:root {
-  --background: 0 0% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 0 0% 9%;
-  --secondary: 0 0% 14.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 14.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
-  --ring: 0 0% 83.1%;
+/* ── Tailwind v4 theme tokens ────────────────────────────────── */
+@theme {
+  --color-background: hsl(0 0% 3.9%);
+  --color-foreground: hsl(0 0% 98%);
+  --color-muted: hsl(0 0% 14.9%);
+  --color-muted-foreground: hsl(0 0% 63.9%);
+  --color-accent: hsl(0 0% 14.9%);
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-border: hsl(0 0% 14.9%);
+  --color-input: hsl(0 0% 14.9%);
+  --color-ring: hsl(0 0% 83.1%);
   --radius: 0.5rem;
-  --thread-max-width: 44rem;
 }
 
 /* ── Reset ────────────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
-  border-color: hsl(var(--border));
+  border-color: var(--color-border);
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
   font-family: system-ui, -apple-system, sans-serif;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -48,7 +39,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
+  background: color-mix(in srgb, var(--color-muted-foreground) 20%, transparent);
   border-radius: 999px;
 }
 
@@ -57,25 +48,25 @@ body {
   line-height: 1.65;
 }
 .aui-md-root pre {
-  background: hsl(var(--muted)) !important;
-  border: 1px solid hsl(var(--border));
+  background: var(--color-muted) !important;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 1rem;
   overflow-x: auto;
 }
 .aui-md-root code:not(pre code) {
-  background: hsl(var(--muted));
+  background: var(--color-muted);
   padding: 0.15em 0.4em;
   border-radius: 4px;
   font-size: 0.875em;
 }
 .aui-md-root a {
-  color: hsl(var(--foreground));
+  color: var(--color-foreground);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .aui-md-root blockquote {
-  border-left: 2px solid hsl(var(--border));
+  border-left: 2px solid var(--color-border);
   padding-left: 1rem;
-  color: hsl(var(--muted-foreground));
+  color: var(--color-muted-foreground);
 }
