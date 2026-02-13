@@ -5,9 +5,9 @@ import {
   BranchPickerPrimitive,
   ActionBarPrimitive,
   AuiIf,
-} from "@assistant-ui/react";
-import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
-import type { FC, ReactNode } from "react";
+} from '@assistant-ui/react'
+import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown'
+import type { FC, ReactNode } from 'react'
 import {
   ArrowDownIcon,
   SendIcon,
@@ -18,17 +18,14 @@ import {
   PencilIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "lucide-react";
+} from 'lucide-react'
 
-const THREAD_MAX_W = "42rem";
+const THREAD_MAX_W = '42rem'
 
 /** Bridge MarkdownTextPrimitive to the TextMessagePartComponent slot. */
-const MarkdownText: FC<{ text: string; status: unknown }> = () => (
-  <MarkdownTextPrimitive smooth />
-);
+const MarkdownText: FC<{ text: string; status: unknown }> = () => <MarkdownTextPrimitive smooth />
 
 // Main thread
-
 export function ChatThread() {
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col bg-background">
@@ -37,9 +34,7 @@ export function ChatThread() {
           <ThreadWelcome />
         </AuiIf>
 
-        <ThreadPrimitive.Messages
-          components={{ UserMessage, AssistantMessage }}
-        />
+        <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 
         <ThreadPrimitive.ViewportFooter
           className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 pb-4 md:pb-6"
@@ -50,28 +45,26 @@ export function ChatThread() {
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>
-  );
+  )
 }
 
 // Welcome
-
 const ThreadWelcome: FC = () => (
   <div className="mx-auto my-auto flex w-full grow flex-col" style={{ maxWidth: THREAD_MAX_W }}>
     <div className="flex w-full grow flex-col items-center justify-center">
       <div className="flex size-full flex-col justify-center px-4">
         <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
-          Pay-per-message AI chat
+          Pay-per-message chat
         </h1>
-        <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-xl text-muted-foreground delay-75 duration-200">
+        <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both mt-3 text-xl text-muted-foreground delay-75 duration-200">
           No subscriptions. No API keys. Just connect and go.
         </p>
       </div>
     </div>
   </div>
-);
+)
 
 // Scroll to bottom
-
 const ScrollToBottom: FC = () => (
   <ThreadPrimitive.ScrollToBottom asChild>
     <button
@@ -81,10 +74,9 @@ const ScrollToBottom: FC = () => (
       <ArrowDownIcon className="size-4" />
     </button>
   </ThreadPrimitive.ScrollToBottom>
-);
+)
 
 // Composer
-
 const Composer: FC = () => (
   <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-2xl border border-input bg-background px-1 pt-2 outline-none transition-shadow focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
     <ComposerPrimitive.Input
@@ -116,10 +108,9 @@ const Composer: FC = () => (
       </AuiIf>
     </div>
   </ComposerPrimitive.Root>
-);
+)
 
 // Messages
-
 const UserMessage: FC = () => (
   <MessagePrimitive.Root
     className="group mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 [&>*]:col-start-2"
@@ -136,7 +127,7 @@ const UserMessage: FC = () => (
     </div>
     <BranchPicker className="col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
   </MessagePrimitive.Root>
-);
+)
 
 const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
@@ -150,21 +141,18 @@ const AssistantMessage: FC = () => (
     <AssistantActionBar />
     <BranchPicker className="col-span-full col-start-1 row-start-3" />
   </MessagePrimitive.Root>
-);
+)
 
 // Action bars
-
 const UserActionBar: FC = () => (
-  <ActionBarPrimitive.Root
-    hideWhenRunning
-    autohide="not-last"
-    className="flex flex-col items-end"
-  >
+  <ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className="flex flex-col items-end">
     <ActionBarPrimitive.Edit asChild>
-      <IconBtn tooltip="Edit"><PencilIcon /></IconBtn>
+      <IconBtn tooltip="Edit">
+        <PencilIcon />
+      </IconBtn>
     </ActionBarPrimitive.Edit>
   </ActionBarPrimitive.Root>
-);
+)
 
 const AssistantActionBar: FC = () => (
   <ActionBarPrimitive.Root
@@ -174,45 +162,50 @@ const AssistantActionBar: FC = () => (
   >
     <ActionBarPrimitive.Copy asChild>
       <IconBtn tooltip="Copy">
-        <AuiIf condition={(s) => s.message.isCopied}><CheckIcon /></AuiIf>
-        <AuiIf condition={(s) => !s.message.isCopied}><CopyIcon /></AuiIf>
+        <AuiIf condition={(s) => s.message.isCopied}>
+          <CheckIcon />
+        </AuiIf>
+        <AuiIf condition={(s) => !s.message.isCopied}>
+          <CopyIcon />
+        </AuiIf>
       </IconBtn>
     </ActionBarPrimitive.Copy>
     <ActionBarPrimitive.Reload asChild>
-      <IconBtn tooltip="Retry"><RefreshCwIcon /></IconBtn>
+      <IconBtn tooltip="Retry">
+        <RefreshCwIcon />
+      </IconBtn>
     </ActionBarPrimitive.Reload>
   </ActionBarPrimitive.Root>
-);
+)
 
 // Branch picker
-
 const BranchPicker: FC<{ className?: string }> = ({ className }) => (
   <BranchPickerPrimitive.Root
     hideWhenSingleBranch
-    className={`inline-flex items-center text-xs text-muted-foreground ${className ?? ""}`}
+    className={`inline-flex items-center text-xs text-muted-foreground ${className ?? ''}`}
   >
     <BranchPickerPrimitive.Previous asChild>
-      <IconBtn tooltip="Previous"><ChevronLeftIcon /></IconBtn>
+      <IconBtn tooltip="Previous">
+        <ChevronLeftIcon />
+      </IconBtn>
     </BranchPickerPrimitive.Previous>
     <span className="font-medium">
       <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
     </span>
     <BranchPickerPrimitive.Next asChild>
-      <IconBtn tooltip="Next"><ChevronRightIcon /></IconBtn>
+      <IconBtn tooltip="Next">
+        <ChevronRightIcon />
+      </IconBtn>
     </BranchPickerPrimitive.Next>
   </BranchPickerPrimitive.Root>
-);
+)
 
 // Shared icon button
-
-const IconBtn: FC<{ tooltip: string; children: ReactNode }> = ({
-  tooltip,
-  children,
-}) => (
+const IconBtn: FC<{ tooltip: string; children: ReactNode }> = ({ tooltip, children }) => (
   <button
     className="flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5"
     aria-label={tooltip}
   >
     {children}
   </button>
-);
+)

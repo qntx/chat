@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
-import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { wagmiConfig } from "@/lib/config";
+import type { ReactNode } from 'react'
+import { WagmiProvider } from 'wagmi'
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { wagmiConfig } from '@/lib/config'
 
-import "@rainbow-me/rainbowkit/styles.css";
+import '@rainbow-me/rainbowkit/styles.css'
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   return (
@@ -14,10 +14,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor: "hsl(0 0% 98%)",
-            accentColorForeground: "hsl(0 0% 9%)",
-            borderRadius: "medium",
-            fontStack: "system",
+            accentColor: 'hsl(0 0% 98%)',
+            accentColorForeground: 'hsl(0 0% 9%)',
+            borderRadius: 'medium',
+            fontStack: 'system',
           })}
           initialChain={143}
           modalSize="compact"
@@ -26,5 +26,5 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
-  );
+  )
 }

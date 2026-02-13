@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import { useWalletClient } from "wagmi";
-import { wrapFetchWithPayment, x402Client } from "@x402/fetch";
-import { ExactEvmScheme, toClientEvmSigner } from "@x402/evm";
-import { createSanitizedFetch } from "@/lib/x402";
+import { useMemo } from 'react'
+import { useWalletClient } from 'wagmi'
+import { wrapFetchWithPayment, x402Client } from '@x402/fetch'
+import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm'
+import { createSanitizedFetch } from '@/lib/x402'
 
 /**
  * Hook that creates an x402-enhanced fetch bound to the connected wallet.
@@ -12,10 +12,10 @@ import { createSanitizedFetch } from "@/lib/x402";
  * detect → parse PAYMENT-REQUIRED → sign EIP-3009 → retry with signature.
  */
 export function useX402Fetch() {
-  const { data: walletClient } = useWalletClient();
+  const { data: walletClient } = useWalletClient()
 
   const fetchWithPayment = useMemo(() => {
-    if (!walletClient?.account) return null;
+    if (!walletClient?.account) return null
 
     const signer = toClientEvmSigner({
       address: walletClient.account.address,
@@ -27,15 +27,15 @@ export function useX402Fetch() {
           primaryType: msg.primaryType,
           message: msg.message,
         }),
-    });
+    })
 
-    const client = new x402Client();
+    const client = new x402Client()
     // Register only for the active chain — MetaMask rejects signTypedData
     // if the domain chainId doesn't match the wallet's active chain.
-    client.register(`eip155:${walletClient.chain.id}`, new ExactEvmScheme(signer));
+    client.register(`eip155:${walletClient.chain.id}`, new ExactEvmScheme(signer))
 
-    return wrapFetchWithPayment(createSanitizedFetch(), client);
-  }, [walletClient]);
+    return wrapFetchWithPayment(createSanitizedFetch(), client)
+  }, [walletClient])
 
-  return { fetchWithPayment, isReady: !!fetchWithPayment };
+  return { fetchWithPayment, isReady: !!fetchWithPayment }
 }

@@ -1,7 +1,7 @@
-import { WalletProvider } from "@/providers/WalletProvider";
-import { ChatProvider } from "@/providers/ChatProvider";
-import { Header } from "@/components/Header";
-import { ChatThread } from "@/components/ChatThread";
+import { WalletProvider } from '@/providers/WalletProvider'
+import { ChatProvider } from '@/providers/ChatProvider'
+import { Header } from '@/components/Header'
+import { ChatThread } from '@/components/ChatThread'
 
 export default function App() {
   return (
@@ -15,5 +15,5 @@ export default function App() {
         </div>
       </ChatProvider>
     </WalletProvider>
-  );
+  )
 }
