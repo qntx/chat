@@ -16,6 +16,10 @@ export function Header() {
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/40 px-6">
       {/* Brand */}
       <div className="flex items-center gap-3">
+        <HeaderIconLink href={GITHUB_URL} label="GitHub">
+          <GitHubIcon className="size-6" />
+        </HeaderIconLink>
+        <div className="h-5 w-px bg-border/40" />
         <span
           className="text-base font-semibold tracking-tight text-foreground"
           style={{ fontFamily: '"QNTX", sans-serif' }}
@@ -28,12 +32,6 @@ export function Header() {
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
-        <HeaderIconLink href={GITHUB_URL} label="GitHub">
-          <GitHubIcon className="size-4" />
-        </HeaderIconLink>
-
-        <div className="mx-2 h-5 w-px bg-border/40" />
-
         <ConnectButton.Custom>
           {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
             const ready = mounted

@@ -27,6 +27,13 @@ export function createSanitizedFetch(
 
 // Message conversion
 
+/** Extract concatenated text from assistant-ui message content parts. */
+const extractText = (parts: readonly { type: string; text?: string }[]) =>
+  parts
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join('')
+
 /** Convert assistant-ui ThreadMessage[] to OpenAI ChatCompletionMessageParam[]. */
 function toOpenAIMessages(
   messages: Parameters<ChatModelAdapter['run']>[0]['messages'],
@@ -48,20 +55,8 @@ function toOpenAIMessages(
         }),
       }
     }
-    if (msg.role === 'assistant') {
-      const text = msg.content
-        .filter((p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text')
-        .map((p) => p.text)
-        .join('')
-      return { role: 'assistant', content: text }
-    }
-    if (msg.role === 'system') {
-      const text = msg.content
-        .filter((p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text')
-        .map((p) => p.text)
-        .join('')
-      return { role: 'system', content: text }
-    }
+    if (msg.role === 'assistant') return { role: 'assistant', content: extractText(msg.content) }
+    if (msg.role === 'system') return { role: 'system', content: extractText(msg.content) }
     return { role: 'user', content: '' }
   })
 }
