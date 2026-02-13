@@ -53,74 +53,21 @@ export function ChatThread() {
   );
 }
 
-// Welcome / Landing
+// Welcome
 
 const ThreadWelcome: FC = () => (
-  <div className="mx-auto my-auto flex w-full grow flex-col items-center justify-center px-4" style={{ maxWidth: THREAD_MAX_W }}>
-    <div className="flex w-full flex-col gap-8 py-12">
-      {/* Hero */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
-          Pay-per-message AI
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Chat with AI,<br />
-          <span className="text-muted-foreground">pay only for what you use.</span>
+  <div className="mx-auto my-auto flex w-full grow flex-col" style={{ maxWidth: THREAD_MAX_W }}>
+    <div className="flex w-full grow flex-col items-center justify-center">
+      <div className="flex size-full flex-col justify-center px-4">
+        <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
+          Pay-per-message AI chat
         </h1>
-      </div>
-
-      {/* Features */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-100 duration-300">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <FeatureCard
-            title="x402 Protocol"
-            description="HTTP 402 micropayments. No subscriptions, no API keys — just connect and chat."
-          />
-          <FeatureCard
-            title="Multi-Chain"
-            description="Pay with USDC on Monad, Base, and more. Your wallet, your choice."
-          />
-          <FeatureCard
-            title="Open Source"
-            description="Fully transparent. Verify every payment on-chain."
-          />
-        </div>
-      </div>
-
-      {/* How it works */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-200 duration-300">
-        <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
-          How it works
+        <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-xl text-muted-foreground delay-75 duration-200">
+          No subscriptions. No API keys. Just connect and go.
         </p>
-        <ol className="space-y-2 text-sm text-muted-foreground">
-          <Step n={1}>Connect your wallet using the button above</Step>
-          <Step n={2}>Type a message — the gateway returns a payment challenge</Step>
-          <Step n={3}>Sign a USDC micropayment, and your message is sent</Step>
-        </ol>
       </div>
-
-      {/* CTA */}
-      <p className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both text-sm text-muted-foreground/60 delay-300 duration-300">
-        Connect your wallet and send a message to get started.
-      </p>
     </div>
   </div>
-);
-
-const FeatureCard: FC<{ title: string; description: string }> = ({ title, description }) => (
-  <div className="rounded-xl border border-border/60 bg-accent/30 px-4 py-3">
-    <p className="mb-1 text-sm font-medium text-foreground/90">{title}</p>
-    <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
-  </div>
-);
-
-const Step: FC<{ n: number; children: ReactNode }> = ({ n, children }) => (
-  <li className="flex items-start gap-3">
-    <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-border/60 text-[10px] font-medium text-muted-foreground">
-      {n}
-    </span>
-    <span>{children}</span>
-  </li>
 );
 
 // Scroll to bottom

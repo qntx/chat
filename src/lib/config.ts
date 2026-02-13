@@ -5,7 +5,8 @@ import {
   walletConnectWallet,
   rainbowWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { base, monad as monadBase } from "viem/chains";
+// import { base } from "viem/chains"; // TODO: re-enable when Base is supported
+import { monad as monadBase } from "viem/chains";
 
 /** Monad chain with icon for RainbowKit (not yet in RainbowKit's mainnet registry) */
 const monad = {
@@ -30,7 +31,7 @@ const WALLETCONNECT_PROJECT_ID = "YOUR_PROJECT_ID";
 export const wagmiConfig = getDefaultConfig({
   appName: "x402 Chat",
   projectId: WALLETCONNECT_PROJECT_ID,
-  chains: [monad, base],
+  chains: [monad /* , base */],
   wallets: [
     {
       groupName: "Recommended",
