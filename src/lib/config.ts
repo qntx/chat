@@ -22,7 +22,7 @@ const monad = {
 export const GATEWAY_URL = 'https://llm.qntx.fun'
 
 /** Default model to use for chat completions */
-export const DEFAULT_MODEL = 'openai/gpt-4o-mini'
+export const DEFAULT_MODEL = 'moonshot/kimi-k2.5'
 
 /** Max width for thread content (messages, composer, welcome) */
 export const MAX_THREAD_WIDTH = '42rem'

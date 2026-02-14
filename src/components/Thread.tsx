@@ -16,7 +16,7 @@ export function ChatThread() {
         <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 
         <ThreadPrimitive.ViewportFooter
-          className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 bg-gradient-to-t from-background from-85% to-transparent pb-4 pt-8 md:pb-6"
+          className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 bg-gradient-to-t from-background from-85% to-transparent pb-4 pt-1 md:pb-6"
           style={{ maxWidth: MAX_THREAD_WIDTH }}
         >
           <ScrollToBottom />
@@ -28,36 +28,36 @@ export function ChatThread() {
 }
 
 const ThreadWelcome: FC = () => (
-  <div className="mx-auto my-auto flex w-full grow flex-col" style={{ maxWidth: MAX_THREAD_WIDTH }}>
-    <div className="flex w-full grow flex-col items-center justify-center">
-      <div className="flex size-full flex-col justify-center px-4">
-        <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
-          Pay-per-message
-        </h1>
-        <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both mt-3 text-xl text-muted-foreground delay-75 duration-200">
-          No subscriptions. No API keys. Just connect and go.
-        </p>
-      </div>
+  <div className="mx-auto flex w-full grow flex-col" style={{ maxWidth: MAX_THREAD_WIDTH }}>
+    {/* Title — vertically centered in remaining space */}
+    <div className="flex grow flex-col justify-center">
+      <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
+        Pay-per-message
+      </h1>
+      <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both mt-2 text-base text-muted-foreground delay-75 duration-200">
+        No subscriptions. No API keys. Just connect and go.
+      </p>
     </div>
-    <div className="grid w-full grid-cols-2 gap-2 pb-4">
+    {/* Suggestions — anchored to bottom, right above the composer */}
+    <div className="grid grid-cols-2 gap-2">
       <ThreadPrimitive.Suggestion
-        prompt="What is x402 and how does pay-per-message work?"
+        prompt="How does x402 enable pay-per-message AI without API keys or subscriptions?"
         send
         asChild
       >
         <button className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex w-full flex-col items-start gap-1 rounded-2xl border border-border/60 px-4 py-3 text-left text-sm transition-colors duration-200 hover:bg-muted">
-          <span className="font-medium">What is x402?</span>
-          <span className="text-muted-foreground">and how does pay-per-message work</span>
+          <span className="font-medium">How does x402 work?</span>
+          <span className="text-muted-foreground">Pay-per-message AI without API keys</span>
         </button>
       </ThreadPrimitive.Suggestion>
       <ThreadPrimitive.Suggestion
-        prompt="Explain how crypto wallets connect to AI chat"
+        prompt="What makes Monad's blockchain architecture ideal for high-throughput crypto payments?"
         send
         asChild
       >
         <button className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex w-full flex-col items-start gap-1 rounded-2xl border border-border/60 px-4 py-3 text-left text-sm transition-colors delay-75 duration-200 hover:bg-muted">
-          <span className="font-medium">Explain crypto wallets</span>
-          <span className="text-muted-foreground">and how they connect to AI chat</span>
+          <span className="font-medium">Why Monad?</span>
+          <span className="text-muted-foreground">High-throughput blockchain for payments</span>
         </button>
       </ThreadPrimitive.Suggestion>
     </div>
