@@ -46,31 +46,33 @@ export const Composer: FC = () => (
       autoFocus
     />
     <div className="relative mx-2 mb-2 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1">
+      {/* Left: attach image */}
+      <ComposerPrimitive.AddAttachment asChild>
+        <button
+          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Attach image"
+        >
+          <ImagePlusIcon className="size-4" />
+        </button>
+      </ComposerPrimitive.AddAttachment>
+      {/* Right: model picker + send/stop */}
+      <div className="flex items-center gap-2">
         <ModelPicker />
-        <ComposerPrimitive.AddAttachment asChild>
-          <button
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            aria-label="Attach image"
-          >
-            <ImagePlusIcon className="size-4" />
-          </button>
-        </ComposerPrimitive.AddAttachment>
+        <AuiIf condition={(s) => s.thread.isRunning}>
+          <ComposerPrimitive.Cancel asChild>
+            <button className={SUBMIT_BTN} aria-label="Stop">
+              <SquareIcon className="size-3.5" fill="currentColor" />
+            </button>
+          </ComposerPrimitive.Cancel>
+        </AuiIf>
+        <AuiIf condition={(s) => !s.thread.isRunning}>
+          <ComposerPrimitive.Send asChild>
+            <button className={`${SUBMIT_BTN} disabled:opacity-20`} aria-label="Send">
+              <SendIcon className="size-3.5" />
+            </button>
+          </ComposerPrimitive.Send>
+        </AuiIf>
       </div>
-      <AuiIf condition={(s) => s.thread.isRunning}>
-        <ComposerPrimitive.Cancel asChild>
-          <button className={SUBMIT_BTN} aria-label="Stop">
-            <SquareIcon className="size-3.5" fill="currentColor" />
-          </button>
-        </ComposerPrimitive.Cancel>
-      </AuiIf>
-      <AuiIf condition={(s) => !s.thread.isRunning}>
-        <ComposerPrimitive.Send asChild>
-          <button className={`${SUBMIT_BTN} disabled:opacity-20`} aria-label="Send">
-            <SendIcon className="size-3.5" />
-          </button>
-        </ComposerPrimitive.Send>
-      </AuiIf>
     </div>
   </ComposerPrimitive.Root>
 )
