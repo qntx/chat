@@ -1,6 +1,11 @@
-import type {
-  ThreadMessage,
-  unstable_RemoteThreadListAdapter as RemoteThreadListAdapter,
+import { useCallback, useMemo, type PropsWithChildren } from 'react'
+import {
+  RuntimeAdapterProvider,
+  useAuiState,
+  type ThreadMessage,
+  type ExportedMessageRepository,
+  type ExportedMessageRepositoryItem,
+  type unstable_RemoteThreadListAdapter as RemoteThreadListAdapter,
 } from '@assistant-ui/react'
 import { createAssistantStream } from 'assistant-stream'
 
@@ -36,8 +41,17 @@ function saveThreads(threads: RemoteThreadMetadata[]): void {
   localStorage.setItem(THREADS_KEY, JSON.stringify(threads))
 }
 
-function saveMessages(remoteId: string, messages: readonly ThreadMessage[]): void {
-  localStorage.setItem(MESSAGES_KEY_PREFIX + remoteId, JSON.stringify(messages))
+function loadRepo(remoteId: string): ExportedMessageRepository | null {
+  try {
+    const raw = localStorage.getItem(MESSAGES_KEY_PREFIX + remoteId)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function saveRepo(remoteId: string, repo: ExportedMessageRepository): void {
+  localStorage.setItem(MESSAGES_KEY_PREFIX + remoteId, JSON.stringify(repo))
 }
 
 function removeMessages(remoteId: string): void {
@@ -123,8 +137,7 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
         saveThreads(threads)
       }
 
-      // Also persist messages for this thread
-      saveMessages(remoteId, messages)
+      // Note: messages are persisted incrementally via ThreadHistoryAdapter.append()
 
       // Return an AssistantStream that emits the title as text
       return createAssistantStream((controller) => {
@@ -140,5 +153,48 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
         found ?? { status: 'regular', remoteId: threadId, title: undefined, externalId: undefined }
       )
     },
+
+    // Inject ThreadHistoryAdapter into each thread's LocalRuntime
+    unstable_Provider: ThreadHistoryProvider,
   }
+}
+
+// ── Provider that injects per-thread history adapter ────────────
+
+function ThreadHistoryProvider({ children }: PropsWithChildren) {
+  const remoteId = useAuiState((s) => s.threadListItem.remoteId)
+
+  const history = useLocalStorageHistoryAdapter(remoteId)
+  const adapters = useMemo(() => ({ history }), [history])
+
+  return <RuntimeAdapterProvider adapters={adapters}>{children}</RuntimeAdapterProvider>
+}
+
+// ── localStorage-backed ThreadHistoryAdapter ────────────────────
+
+function useLocalStorageHistoryAdapter(remoteId: string | undefined) {
+  const load = useCallback(async () => {
+    if (!remoteId) return { messages: [] }
+    return loadRepo(remoteId) ?? { messages: [] }
+  }, [remoteId])
+
+  const append = useCallback(
+    async (item: ExportedMessageRepositoryItem) => {
+      if (!remoteId) return
+      const repo = loadRepo(remoteId) ?? { messages: [] }
+      // Update or add the message in the repository
+      const idx = repo.messages.findIndex((m) => m.message.id === item.message.id)
+      if (idx >= 0) {
+        repo.messages[idx] = item
+      } else {
+        repo.messages.push(item)
+      }
+      // Always update headId to the latest message
+      repo.headId = item.message.id
+      saveRepo(remoteId, repo)
+    },
+    [remoteId],
+  )
+
+  return useMemo(() => ({ load, append }), [load, append])
 }

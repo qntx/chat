@@ -5,13 +5,15 @@ import ShikiHighlighter from 'react-shiki'
 import remarkGfm from 'remark-gfm'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 
+const REMARK_PLUGINS = [remarkGfm]
+
 const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => (
   <ShikiHighlighter
     language={language}
     theme="github-dark"
     addDefaultStyles={false}
     showLanguage={false}
-    className="[&_pre]:overflow-x-auto [&_pre]:rounded-b-xl [&_pre]:bg-muted/75! [&_pre]:p-4 [&_pre]:text-[13px] [&_pre]:leading-relaxed"
+    className="[&_pre]:overflow-x-auto [&_pre]:bg-muted/75! [&_pre]:p-4 [&_pre]:text-[13px] [&_pre]:leading-relaxed"
   >
     {code.trim()}
   </ShikiHighlighter>
@@ -28,7 +30,10 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   }, [code])
 
   return (
-    <div className="flex items-center justify-between rounded-t-xl bg-muted px-4 py-2">
+    <div
+      className="flex items-center justify-between rounded-t-xl bg-muted px-4 py-2"
+      data-code-header
+    >
       <span className="text-xs font-medium text-muted-foreground">{language || 'code'}</span>
       <button
         type="button"
@@ -52,11 +57,13 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   )
 }
 
+const MD_COMPONENTS = { SyntaxHighlighter, CodeHeader }
+
 export const MarkdownText: FC<{ text: string; status: unknown }> = () => (
   <MarkdownTextPrimitive
     className="aui-md"
     smooth
-    remarkPlugins={[remarkGfm]}
-    components={{ SyntaxHighlighter, CodeHeader }}
+    remarkPlugins={REMARK_PLUGINS}
+    components={MD_COMPONENTS}
   />
 )

@@ -27,6 +27,9 @@ export const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 /** Max width for thread content (messages, composer, welcome) */
 export const MAX_THREAD_WIDTH = '42rem'
 
+/** GitHub repository URL */
+export const GITHUB_URL = 'https://github.com/qntx/chat'
+
 /** Marker prefix injected by the disconnected adapter, detected by WalletAwareText */
 export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
 

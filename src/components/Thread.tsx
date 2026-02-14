@@ -16,7 +16,7 @@ export function ChatThread() {
         <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 
         <ThreadPrimitive.ViewportFooter
-          className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 pb-4 md:pb-6"
+          className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 bg-gradient-to-t from-background from-85% to-transparent pb-4 pt-8 md:pb-6"
           style={{ maxWidth: MAX_THREAD_WIDTH }}
         >
           <ScrollToBottom />

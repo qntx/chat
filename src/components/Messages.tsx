@@ -120,12 +120,7 @@ const IconBtn = forwardRef<
   HTMLButtonElement,
   { tooltip: string; children: ReactNode } & React.ComponentPropsWithoutRef<'button'>
 >(({ tooltip, children, className, ...props }, ref) => (
-  <button
-    ref={ref}
-    {...props}
-    className={`flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5 ${className ?? ''}`}
-    aria-label={tooltip}
-  >
+  <button ref={ref} {...props} className={`${ACTION_BTN} ${className ?? ''}`} aria-label={tooltip}>
     {children}
   </button>
 ))
