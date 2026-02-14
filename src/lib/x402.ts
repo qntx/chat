@@ -180,20 +180,22 @@ function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
         // Show loading state
         yield { content: [{ type: 'text' as const, text: '🎨 Generating image…' }] }
 
+        // Don't force response_format — DALL-E supports 'url' but most
+        // other providers (Google Imagen, OpenRouter proxied models) only
+        // return b64_json. Omitting lets each provider use its default.
         const response = await openai.images.generate(
-          {
-            model,
-            prompt,
-            n: 1,
-            response_format: 'url',
-          },
+          { model, prompt, n: 1 },
           { signal: abortSignal },
         )
 
-        const imageUrl = response.data?.[0]?.url
-        const revisedPrompt = response.data?.[0]?.revised_prompt
+        const item = response.data?.[0]
+        // Resolve image source: prefer url, fall back to base64 data URI
+        const imageUrl = item?.url
+        const b64 = item?.b64_json
+        const imageSrc = imageUrl ?? (b64 ? `data:image/png;base64,${b64}` : undefined)
+        const revisedPrompt = item?.revised_prompt
 
-        if (!imageUrl) {
+        if (!imageSrc) {
           yield {
             content: [
               {
@@ -208,7 +210,7 @@ function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
 
         // Yield image + optional revised prompt as content parts
         const content: ({ type: 'image'; image: string } | { type: 'text'; text: string })[] = [
-          { type: 'image' as const, image: imageUrl },
+          { type: 'image' as const, image: imageSrc },
         ]
         if (revisedPrompt) {
           content.push({ type: 'text' as const, text: revisedPrompt })
