@@ -21,6 +21,11 @@
   --color-border: hsl(0 0% 14.9%);
   --color-input: hsl(0 0% 14.9%);
   --color-ring: hsl(0 0% 83.1%);
+  --color-popover: hsl(0 0% 3.9%);
+  --color-popover-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-code: #24292e;
+  --color-code-header: #2d333b;
   --radius: 0.5rem;
 }
 
@@ -123,13 +128,18 @@ body {
   margin-bottom: 0;
 }
 
-/* Standalone pre (no SyntaxHighlighter wrapper, e.g. unknown language).
-   Pre inside our unified code block container is styled via Tailwind. */
+/* Standalone pre (no SyntaxHighlighter wrapper, e.g. unknown language). */
 .aui-md > pre {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
   border-radius: 0.75rem;
   overflow: hidden;
+}
+
+/* Strip Shiki's inline background so our theme tokens control code block colors. */
+.aui-md pre pre,
+.aui-md pre pre code {
+  background: transparent !important;
 }
 
 /* Inline code */

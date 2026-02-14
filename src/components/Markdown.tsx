@@ -21,7 +21,7 @@ const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => {
   return (
     <div className="my-3 overflow-hidden rounded-xl">
       {/* Header bar */}
-      <div className="flex items-center justify-between bg-muted px-4 py-2">
+      <div className="flex items-center justify-between bg-code-header px-4 py-2">
         <span className="text-xs font-medium text-muted-foreground">{language || 'code'}</span>
         <button
           type="button"
@@ -48,7 +48,7 @@ const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => {
         theme="github-dark"
         addDefaultStyles={false}
         showLanguage={false}
-        className="!m-0 !rounded-none overflow-x-auto bg-muted/75! p-4 text-[13px] leading-relaxed"
+        className="!m-0 !rounded-none overflow-x-auto bg-code p-4 text-[13px] leading-relaxed"
       >
         {code.trim()}
       </ShikiHighlighter>
