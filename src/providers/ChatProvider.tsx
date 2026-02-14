@@ -7,9 +7,7 @@ import {
 import { useX402Fetch } from '@/hooks/use-x402-fetch'
 import { createX402ChatAdapter } from '@/lib/x402'
 import { useModel } from '@/providers/ModelProvider'
-
-/** Marker prefix used by ChatThread to detect wallet-not-connected messages */
-export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
+import { WALLET_PROMPT_MARKER } from '@/lib/config'
 
 /** Fallback adapter shown when no wallet is connected */
 const disconnectedAdapter: ChatModelAdapter = {

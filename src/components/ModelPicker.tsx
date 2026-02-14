@@ -10,26 +10,21 @@ export const ModelPicker: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Close popover on outside click
+  // Close on outside click or Escape
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+    const onMouse = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    document.addEventListener('mousedown', onMouse)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onMouse)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [open])
 
   // Auto-focus search input when popover opens
@@ -40,19 +35,17 @@ export const ModelPicker: FC = () => {
     }
   }, [open])
 
-  // Filter models by search query
   const filtered = useMemo(() => {
     if (!query.trim()) return models
-    const lower = query.toLowerCase()
-    return models.filter((m) => m.id.toLowerCase().includes(lower))
+    const q = query.toLowerCase()
+    return models.filter((m) => m.id.toLowerCase().includes(q))
   }, [models, query])
 
   const current = models.find((m) => m.id === selectedModel)
-  const displayName = current ? shortLabel(current) : isLoading ? 'Loading…' : 'Select model'
+  const displayName = current ? stripPrefix(current.id) : isLoading ? 'Loading…' : 'Select model'
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Trigger button */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -63,10 +56,8 @@ export const ModelPicker: FC = () => {
         <ChevronDownIcon className={`size-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Popover dropdown */}
       {open && (
         <div className="absolute bottom-full left-0 z-50 mb-1 flex max-h-96 w-72 flex-col rounded-xl border border-border bg-background shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-150">
-          {/* Search input */}
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
             <input
@@ -78,8 +69,6 @@ export const ModelPicker: FC = () => {
               className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/60"
             />
           </div>
-
-          {/* Model list */}
           <div className="flex-1 overflow-y-auto p-1">
             {isLoading ? (
               <div className="px-3 py-2 text-xs text-muted-foreground">Loading models…</div>
@@ -88,9 +77,9 @@ export const ModelPicker: FC = () => {
                 {query ? 'No matching models' : 'No models available'}
               </div>
             ) : (
-              <ModelList
+              <GroupedModelList
                 models={filtered}
-                selectedModel={selectedModel}
+                selected={selectedModel}
                 onSelect={(id) => {
                   setSelectedModel(id)
                   setOpen(false)
@@ -104,13 +93,11 @@ export const ModelPicker: FC = () => {
   )
 }
 
-/** Group models by provider and render them */
-const ModelList: FC<{
+const GroupedModelList: FC<{
   models: ModelInfo[]
-  selectedModel: string
+  selected: string
   onSelect: (id: string) => void
-}> = ({ models, selectedModel, onSelect }) => {
-  // Group by provider
+}> = ({ models, selected, onSelect }) => {
   const groups = new Map<string, ModelInfo[]>()
   for (const m of models) {
     const list = groups.get(m.provider) ?? []
@@ -131,11 +118,11 @@ const ModelList: FC<{
               type="button"
               onClick={() => onSelect(m.id)}
               className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent ${
-                m.id === selectedModel ? 'bg-accent/50 text-foreground' : 'text-muted-foreground'
+                m.id === selected ? 'bg-accent/50 text-foreground' : 'text-muted-foreground'
               }`}
             >
-              <span className="flex-1 truncate">{shortLabel(m)}</span>
-              {m.id === selectedModel && <CheckIcon className="size-3 shrink-0" />}
+              <span className="flex-1 truncate">{stripPrefix(m.id)}</span>
+              {m.id === selected && <CheckIcon className="size-3 shrink-0" />}
             </button>
           ))}
         </div>
@@ -144,7 +131,8 @@ const ModelList: FC<{
   )
 }
 
-/** Strip the provider prefix for display, e.g. "qntx/gpt-4o" → "gpt-4o" */
-function shortLabel(m: ModelInfo): string {
-  return m.id.includes('/') ? m.id.split('/').slice(1).join('/') : m.id
+/** "qntx/gpt-4o" → "gpt-4o" */
+function stripPrefix(id: string): string {
+  const i = id.indexOf('/')
+  return i >= 0 ? id.slice(i + 1) : id
 }
