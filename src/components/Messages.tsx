@@ -9,7 +9,9 @@ import {
 } from '@assistant-ui/react'
 import {
   CopyIcon,
+  CheckIcon,
   RefreshCwIcon,
+  LoaderIcon,
   PencilIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -18,7 +20,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { forwardRef, useMemo, type FC, type ReactNode } from 'react'
+import { forwardRef, useState, useCallback, useMemo, type FC, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/Markdown'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/config'
 
@@ -140,6 +142,34 @@ export const UserMessage: FC = () => (
   </MessagePrimitive.Root>
 )
 
+/** Copy button with visual feedback — icon changes to checkmark for 2s after click. */
+const CopyButton: FC = () => {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = useCallback(() => {
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [])
+
+  return (
+    <ActionBarPrimitive.Copy className={ACTION_BTN} onClick={handleCopy}>
+      {copied ? <CheckIcon className="text-green-400" /> : <CopyIcon />}
+    </ActionBarPrimitive.Copy>
+  )
+}
+
+/** Reload button with spinner feedback while the thread is running. */
+const ReloadButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'>>(
+  (props, ref) => {
+    const isRunning = useAuiState((s) => s.thread.isRunning)
+    return (
+      <button ref={ref} {...props} className={ACTION_BTN}>
+        {isRunning ? <LoaderIcon className="animate-spin" /> : <RefreshCwIcon />}
+      </button>
+    )
+  },
+)
+ReloadButton.displayName = 'ReloadButton'
+
 export const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
     className="animate-in fade-in slide-in-from-bottom-1 group relative mx-auto w-full px-2 py-3 duration-150"
@@ -153,14 +183,12 @@ export const AssistantMessage: FC = () => (
       <BranchPicker />
       <ActionBarPrimitive.Root
         hideWhenRunning
-        autohide="not-last"
+        autohide="never"
         className="-ml-1 flex gap-1 text-muted-foreground"
       >
-        <ActionBarPrimitive.Copy className={ACTION_BTN}>
-          <CopyIcon />
-        </ActionBarPrimitive.Copy>
-        <ActionBarPrimitive.Reload className={ACTION_BTN}>
-          <RefreshCwIcon />
+        <CopyButton />
+        <ActionBarPrimitive.Reload asChild>
+          <ReloadButton />
         </ActionBarPrimitive.Reload>
       </ActionBarPrimitive.Root>
     </div>
