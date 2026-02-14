@@ -3,8 +3,7 @@ import { ArrowDownIcon } from 'lucide-react'
 import type { FC } from 'react'
 import { UserMessage, AssistantMessage } from '@/components/Messages'
 import { Composer } from '@/components/Composer'
-
-const MAX_W = '42rem'
+import { MAX_THREAD_WIDTH } from '@/lib/config'
 
 export function ChatThread() {
   return (
@@ -18,7 +17,7 @@ export function ChatThread() {
 
         <ThreadPrimitive.ViewportFooter
           className="sticky bottom-0 mx-auto mt-auto flex w-full flex-col gap-4 pb-4 md:pb-6"
-          style={{ maxWidth: MAX_W }}
+          style={{ maxWidth: MAX_THREAD_WIDTH }}
         >
           <ScrollToBottom />
           <Composer />
@@ -29,7 +28,7 @@ export function ChatThread() {
 }
 
 const ThreadWelcome: FC = () => (
-  <div className="mx-auto my-auto flex w-full grow flex-col" style={{ maxWidth: MAX_W }}>
+  <div className="mx-auto my-auto flex w-full grow flex-col" style={{ maxWidth: MAX_THREAD_WIDTH }}>
     <div className="flex w-full grow flex-col items-center justify-center">
       <div className="flex size-full flex-col justify-center px-4">
         <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">

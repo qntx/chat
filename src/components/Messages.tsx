@@ -1,12 +1,6 @@
-import {
-  MessagePrimitive,
-  BranchPickerPrimitive,
-  ActionBarPrimitive,
-  AuiIf,
-} from '@assistant-ui/react'
+import { MessagePrimitive, BranchPickerPrimitive, ActionBarPrimitive } from '@assistant-ui/react'
 import {
   CopyIcon,
-  CheckIcon,
   RefreshCwIcon,
   PencilIcon,
   ChevronLeftIcon,
@@ -14,11 +8,12 @@ import {
   WalletIcon,
 } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import type { FC, ReactNode } from 'react'
+import { forwardRef, type FC, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/Markdown'
-import { WALLET_PROMPT_MARKER } from '@/lib/config'
+import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/config'
 
-const MAX_W = '42rem'
+const ACTION_BTN =
+  'flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5'
 
 const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }) => {
   if (text.startsWith(WALLET_PROMPT_MARKER)) {
@@ -48,7 +43,7 @@ const ConnectWalletButton: FC = () => {
 export const UserMessage: FC = () => (
   <MessagePrimitive.Root
     className="animate-in fade-in slide-in-from-bottom-1 group mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
-    style={{ maxWidth: MAX_W }}
+    style={{ maxWidth: MAX_THREAD_WIDTH }}
     data-role="user"
   >
     <div className="relative col-start-2 min-w-0">
@@ -76,7 +71,7 @@ export const UserMessage: FC = () => (
 export const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
     className="animate-in fade-in slide-in-from-bottom-1 group relative mx-auto w-full px-2 py-3 duration-150"
-    style={{ maxWidth: MAX_W }}
+    style={{ maxWidth: MAX_THREAD_WIDTH }}
     data-role="assistant"
   >
     <div className="min-w-0 text-sm leading-7">
@@ -89,20 +84,11 @@ export const AssistantMessage: FC = () => (
         autohide="not-last"
         className="-ml-1 flex gap-1 text-muted-foreground"
       >
-        <ActionBarPrimitive.Copy asChild>
-          <IconBtn tooltip="Copy">
-            <AuiIf condition={(s) => s.message.isCopied}>
-              <CheckIcon />
-            </AuiIf>
-            <AuiIf condition={(s) => !s.message.isCopied}>
-              <CopyIcon />
-            </AuiIf>
-          </IconBtn>
+        <ActionBarPrimitive.Copy className={ACTION_BTN}>
+          <CopyIcon />
         </ActionBarPrimitive.Copy>
-        <ActionBarPrimitive.Reload asChild>
-          <IconBtn tooltip="Retry">
-            <RefreshCwIcon />
-          </IconBtn>
+        <ActionBarPrimitive.Reload className={ACTION_BTN}>
+          <RefreshCwIcon />
         </ActionBarPrimitive.Reload>
       </ActionBarPrimitive.Root>
     </div>
@@ -130,11 +116,17 @@ const BranchPicker: FC<{ className?: string }> = ({ className }) => (
   </BranchPickerPrimitive.Root>
 )
 
-const IconBtn: FC<{ tooltip: string; children: ReactNode }> = ({ tooltip, children }) => (
+const IconBtn = forwardRef<
+  HTMLButtonElement,
+  { tooltip: string; children: ReactNode } & React.ComponentPropsWithoutRef<'button'>
+>(({ tooltip, children, className, ...props }, ref) => (
   <button
-    className="flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5"
+    ref={ref}
+    {...props}
+    className={`flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5 ${className ?? ''}`}
     aria-label={tooltip}
   >
     {children}
   </button>
-)
+))
+IconBtn.displayName = 'IconBtn'

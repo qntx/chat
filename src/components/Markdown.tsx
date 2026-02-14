@@ -5,12 +5,7 @@ import ShikiHighlighter from 'react-shiki'
 import remarkGfm from 'remark-gfm'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 
-const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({
-  code,
-  language,
-  components: _components,
-  node: _node,
-}) => (
+const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => (
   <ShikiHighlighter
     language={language}
     theme="github-dark"

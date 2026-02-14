@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
+import { useAui } from '@assistant-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { WalletIcon, ChevronDownIcon } from 'lucide-react'
+import { WalletIcon, ChevronDownIcon, PanelLeftIcon } from 'lucide-react'
 
 /** GitHub mark SVG — lucide deprecated all brand icons */
 const GitHubIcon = ({ className }: { className?: string }) => (
@@ -11,27 +12,49 @@ const GitHubIcon = ({ className }: { className?: string }) => (
 
 const GITHUB_URL = 'https://github.com/qntx/chat'
 
-export function Header() {
+export function Header({
+  sidebarOpen,
+  onToggleSidebar,
+}: {
+  sidebarOpen: boolean
+  onToggleSidebar: () => void
+}) {
+  const aui = useAui()
+
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-14 items-center justify-between px-6 [&>*]:pointer-events-auto">
       {/* Brand */}
       <div className="flex items-center gap-3">
-        <HeaderIconLink href={GITHUB_URL} label="GitHub">
-          <GitHubIcon className="size-6" />
-        </HeaderIconLink>
-        <div className="h-5 w-px bg-border/40" />
-        <span
-          className="text-base font-semibold tracking-tight text-foreground"
-          style={{ fontFamily: '"QNTX", sans-serif' }}
+        {!sidebarOpen && (
+          <button
+            onClick={onToggleSidebar}
+            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+            aria-label="Open sidebar"
+          >
+            <PanelLeftIcon className="size-4" />
+          </button>
+        )}
+        <button
+          onClick={() => aui.threads().switchToNewThread()}
+          className="flex items-center gap-0 transition-opacity hover:opacity-70"
+          aria-label="New chat"
         >
-          qnTX
-        </span>
-        <span className="hidden text-xs text-muted-foreground/50 sm:inline">/</span>
-        <span className="hidden text-xs text-muted-foreground/50 sm:inline">chat</span>
+          <span
+            className="text-base font-semibold tracking-tight text-foreground"
+            style={{ fontFamily: '"QNTX", sans-serif' }}
+          >
+            qnTX
+          </span>
+          <span className="hidden text-xs text-muted-foreground/50 sm:inline">&nbsp;/&nbsp;</span>
+          <span className="hidden text-xs text-muted-foreground/50 sm:inline">chat</span>
+        </button>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
+        <HeaderIconLink href={GITHUB_URL} label="GitHub">
+          <GitHubIcon className="size-5" />
+        </HeaderIconLink>
         <ConnectButton.Custom>
           {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
             const ready = mounted

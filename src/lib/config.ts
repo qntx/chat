@@ -24,6 +24,9 @@ export const GATEWAY_URL = 'https://llm.qntx.fun'
 /** Default model to use for chat completions */
 export const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 
+/** Max width for thread content (messages, composer, welcome) */
+export const MAX_THREAD_WIDTH = '42rem'
+
 /** Marker prefix injected by the disconnected adapter, detected by WalletAwareText */
 export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
 
