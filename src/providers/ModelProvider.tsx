@@ -1,30 +1,35 @@
 import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
 import { GATEWAY_URL, DEFAULT_MODEL } from '@/lib/config'
 
+export type ModelType = 'chat' | 'image'
+
 export interface ModelInfo {
   id: string
   provider: string
+  type: ModelType
 }
 
 interface ModelContextValue {
   models: ModelInfo[]
   isLoading: boolean
   selectedModel: string
+  selectedModelType: ModelType
   setSelectedModel: (id: string) => void
 }
 
-/** Patterns that identify non-chat models (embedding, tts, image gen, etc.) */
+/** Patterns that identify models to completely exclude (not useful in chat UI) */
 const EXCLUDE_PATTERNS = [
   'embedding',
   'tts',
   'whisper',
-  'dall-e',
-  'image',
   'aqa',
   'audio',
   'deep-research',
   'computer-use',
 ]
+
+/** Patterns that identify image generation models */
+const IMAGE_PATTERNS = ['dall-e', 'image', 'flux', 'stable-diffusion', 'midjourney']
 
 const ModelContext = createContext<ModelContextValue | null>(null)
 
@@ -50,10 +55,15 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
         const chatModels: ModelInfo[] = data
           .filter((m) => !EXCLUDE_PATTERNS.some((p) => m.id.toLowerCase().includes(p)))
-          .map((m) => ({
-            id: m.id,
-            provider: m.id.includes('/') ? m.id.split('/')[0]! : 'unknown',
-          }))
+          .map((m) => {
+            const lower = m.id.toLowerCase()
+            const type: ModelType = IMAGE_PATTERNS.some((p) => lower.includes(p)) ? 'image' : 'chat'
+            return {
+              id: m.id,
+              provider: m.id.includes('/') ? m.id.split('/')[0]! : 'unknown',
+              type,
+            }
+          })
           .sort((a, b) => a.id.localeCompare(b.id))
 
         if (!cancelled) {
@@ -75,9 +85,11 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const selectedModelType: ModelType = models.find((m) => m.id === selectedModel)?.type ?? 'chat'
+
   const value = useMemo<ModelContextValue>(
-    () => ({ models, isLoading, selectedModel, setSelectedModel }),
-    [models, isLoading, selectedModel],
+    () => ({ models, isLoading, selectedModel, selectedModelType, setSelectedModel }),
+    [models, isLoading, selectedModel, selectedModelType],
   )
 
   return <ModelContext value={value}>{children}</ModelContext>

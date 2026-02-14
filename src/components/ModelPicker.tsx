@@ -122,6 +122,11 @@ const GroupedModelList: FC<{
               }`}
             >
               <span className="flex-1 truncate">{stripPrefix(m.id)}</span>
+              {m.type === 'image' && (
+                <span className="shrink-0 rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-medium text-purple-400">
+                  IMG
+                </span>
+              )}
               {m.id === selected && <CheckIcon className="size-3 shrink-0" />}
             </button>
           ))}

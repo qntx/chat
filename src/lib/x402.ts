@@ -2,6 +2,7 @@ import type { ChatModelAdapter } from '@assistant-ui/react'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import OpenAI from 'openai'
 import { GATEWAY_URL, DEFAULT_MODEL } from './config'
+import type { ModelType } from '@/providers/ModelProvider'
 
 // Fetch sanitization
 
@@ -89,10 +90,14 @@ function toOpenAIMessages(
  * The OpenAI SDK handles request formatting, auth headers, SSE parsing, and
  * streaming — while the x402-wrapped fetch transparently handles 402 payment
  * challenges. Header sanitization is applied via `createSanitizedFetch`.
+ *
+ * When modelType is 'image', the adapter calls images.generate instead of
+ * chat.completions.create, and yields the result as an image content part.
  */
 export function createX402ChatAdapter(
   fetchFn: typeof globalThis.fetch,
   model: string = DEFAULT_MODEL,
+  modelType: ModelType = 'chat',
 ): ChatModelAdapter {
   const openai = new OpenAI({
     apiKey: 'x402',
@@ -101,6 +106,14 @@ export function createX402ChatAdapter(
     dangerouslyAllowBrowser: true,
   })
 
+  if (modelType === 'image') {
+    return createImageAdapter(openai, model)
+  }
+  return createChatAdapter(openai, model)
+}
+
+/** Adapter for streaming chat completions */
+function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       const openaiMessages = toOpenAIMessages(messages)
@@ -125,14 +138,91 @@ export function createX402ChatAdapter(
         }
 
         yield {
-          content: [{ type: 'text' as const, text: text || '(Empty response)' }],
+          content: [{ type: 'text' as const, text: text || '🤷 No response received.' }],
           status: { type: 'complete' as const, reason: 'stop' as const },
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
-        console.error('[x402] Request failed:', message)
+        console.error('[x402] Chat request failed:', message)
         yield {
-          content: [{ type: 'text' as const, text: `⚠️ ${message}` }],
+          content: [{ type: 'text' as const, text: `🙈 ${message}` }],
+          status: { type: 'incomplete' as const, reason: 'error' as const, error: message },
+        }
+      }
+    },
+  }
+}
+
+/** Adapter for image generation via images.generate */
+function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
+  return {
+    async *run({ messages, abortSignal }) {
+      // Extract the last user message as the image prompt
+      const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+      const prompt = lastUser
+        ? lastUser.content
+            .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+            .map((p) => p.text)
+            .join(' ')
+        : ''
+
+      if (!prompt.trim()) {
+        yield {
+          content: [
+            { type: 'text' as const, text: "✏️ Please describe the image you'd like to generate." },
+          ],
+          status: { type: 'complete' as const, reason: 'stop' as const },
+        }
+        return
+      }
+
+      try {
+        // Show loading state
+        yield { content: [{ type: 'text' as const, text: '🎨 Generating image…' }] }
+
+        const response = await openai.images.generate(
+          {
+            model,
+            prompt,
+            n: 1,
+            response_format: 'url',
+          },
+          { signal: abortSignal },
+        )
+
+        const imageUrl = response.data?.[0]?.url
+        const revisedPrompt = response.data?.[0]?.revised_prompt
+
+        if (!imageUrl) {
+          yield {
+            content: [
+              {
+                type: 'text' as const,
+                text: '🖼️ No image was returned — please try a different prompt.',
+              },
+            ],
+            status: { type: 'complete' as const, reason: 'stop' as const },
+          }
+          return
+        }
+
+        // Yield image + optional revised prompt as content parts
+        const content: ({ type: 'image'; image: string } | { type: 'text'; text: string })[] = [
+          { type: 'image' as const, image: imageUrl },
+        ]
+        if (revisedPrompt) {
+          content.push({ type: 'text' as const, text: revisedPrompt })
+        }
+
+        yield {
+          content,
+          status: { type: 'complete' as const, reason: 'stop' as const },
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error('[x402] Image generation failed:', message)
+        yield {
+          content: [{ type: 'text' as const, text: `🙈 ${message}` }],
           status: { type: 'incomplete' as const, reason: 'error' as const, error: message },
         }
       }

@@ -4,6 +4,9 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { WalletIcon, ChevronDownIcon, PanelLeftIcon, ExternalLinkIcon } from 'lucide-react'
 import { GITHUB_URL } from '@/lib/config'
 
+const ICON_BTN =
+  'flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground'
+
 /** GitHub mark SVG — lucide deprecated all brand icons */
 const GitHubIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -25,11 +28,7 @@ export function Header({
       {/* Brand */}
       <div className="flex items-center gap-3">
         {!sidebarOpen && (
-          <button
-            onClick={onToggleSidebar}
-            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
-            aria-label="Open sidebar"
-          >
+          <button onClick={onToggleSidebar} className={ICON_BTN} aria-label="Open sidebar">
             <PanelLeftIcon className="size-4" />
           </button>
         )}
@@ -88,7 +87,7 @@ export function Header({
                 {chain && (
                   <button
                     onClick={openChainModal}
-                    className="flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-accent"
+                    className={`${ICON_BTN} text-foreground`}
                     aria-label={chain.name ?? 'Switch network'}
                   >
                     {chain.hasIcon && chain.iconUrl ? (
@@ -109,7 +108,7 @@ export function Header({
                   href={`https://monadscan.com/address/${account.address}#tokentxns`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+                  className={ICON_BTN}
                   aria-label="View on Monadscan"
                 >
                   <ExternalLinkIcon className="size-4" />
@@ -146,7 +145,7 @@ function HeaderIconLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+      className={ICON_BTN}
       aria-label={label}
     >
       {children}

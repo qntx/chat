@@ -20,7 +20,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { forwardRef, useState, useCallback, useMemo, type FC, type ReactNode } from 'react'
+import { forwardRef, useRef, useState, useCallback, useMemo, type FC, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/Markdown'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/config'
 
@@ -202,9 +202,11 @@ export const UserMessage: FC = () => (
 /** Copy button with visual feedback — icon changes to checkmark for 2s after click. */
 const CopyButton: FC = () => {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
   const handleCopy = useCallback(() => {
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setCopied(false), 2000)
   }, [])
 
   return (
@@ -227,6 +229,19 @@ const ReloadButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRe
 )
 ReloadButton.displayName = 'ReloadButton'
 
+/** Renders an image content part in an assistant message (e.g. from image generation). */
+const AssistantImage: FC<{ image: string }> = ({ image }) => (
+  <div className="my-2">
+    <a href={image} target="_blank" rel="noopener noreferrer">
+      <img
+        src={image}
+        alt="Generated image"
+        className="max-h-[512px] max-w-full rounded-xl object-contain shadow-md transition-opacity hover:opacity-90"
+      />
+    </a>
+  </div>
+)
+
 export const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
     className="animate-in fade-in slide-in-from-bottom-1 group relative mx-auto w-full px-2 py-3 duration-150"
@@ -234,7 +249,7 @@ export const AssistantMessage: FC = () => (
     data-role="assistant"
   >
     <div className="min-w-0 text-sm leading-7">
-      <MessagePrimitive.Content components={{ Text: WalletAwareText }} />
+      <MessagePrimitive.Content components={{ Text: WalletAwareText, Image: AssistantImage }} />
     </div>
     <div className="mt-1 ml-0.5 flex">
       <BranchPicker />
