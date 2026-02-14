@@ -86,6 +86,10 @@ export function createX402ChatAdapter(
       const openaiMessages = toOpenAIMessages(messages)
 
       try {
+        // Immediately signal "running" so the typing indicator appears
+        // while waiting for wallet signature + server first response.
+        yield { content: [{ type: 'text' as const, text: '' }] }
+
         const stream = await openai.chat.completions.create(
           { model, messages: openaiMessages, stream: true },
           { signal: abortSignal },

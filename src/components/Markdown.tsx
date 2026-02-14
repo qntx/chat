@@ -59,7 +59,7 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
 
 export const MarkdownText: FC<{ text: string; status: unknown }> = () => (
   <MarkdownTextPrimitive
-    className="aui-md-root"
+    className="aui-md"
     smooth
     remarkPlugins={[remarkGfm]}
     components={{ SyntaxHighlighter, CodeHeader }}
