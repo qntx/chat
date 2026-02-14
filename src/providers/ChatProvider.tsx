@@ -3,6 +3,7 @@ import {
   AssistantRuntimeProvider,
   useLocalRuntime,
   unstable_useRemoteThreadListRuntime as useRemoteThreadListRuntime,
+  SimpleImageAttachmentAdapter,
   type ChatModelAdapter,
 } from '@assistant-ui/react'
 import { useX402Fetch } from '@/hooks/use-x402-fetch'
@@ -26,8 +27,9 @@ const disconnectedAdapter: ChatModelAdapter = {
   },
 }
 
-/** Singleton adapter — created once, reused across renders */
+/** Singleton adapters — created once, reused across renders */
 const threadListAdapter = createLocalStorageThreadListAdapter()
+const imageAttachmentAdapter = new SimpleImageAttachmentAdapter()
 
 /** Inner hook that creates a LocalRuntime (used by the thread list runtime) */
 function useInnerRuntime() {
@@ -42,7 +44,11 @@ function useInnerRuntime() {
     [fetchWithPayment, selectedModel],
   )
 
-  return useLocalRuntime(adapter)
+  return useLocalRuntime(adapter, {
+    adapters: {
+      attachments: imageAttachmentAdapter,
+    },
+  })
 }
 
 /**

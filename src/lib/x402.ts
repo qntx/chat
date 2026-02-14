@@ -41,19 +41,39 @@ function toOpenAIMessages(
   return messages.map((msg): ChatCompletionMessageParam => {
     if (msg.role === 'user') {
       const parts = msg.content
-      if (parts.length === 1 && parts[0]!.type === 'text') {
+
+      // Extract image parts from attachments (SimpleImageAttachmentAdapter
+      // stores the data URL in attachment.content, not in the message content).
+      const attachmentImages: { type: 'image'; image: string }[] = []
+      if ('attachments' in msg && Array.isArray(msg.attachments)) {
+        for (const att of msg.attachments) {
+          if (att.content) {
+            for (const c of att.content) {
+              if (c.type === 'image') attachmentImages.push(c as { type: 'image'; image: string })
+            }
+          }
+        }
+      }
+
+      // Text-only shortcut (no images anywhere)
+      if (attachmentImages.length === 0 && parts.length === 1 && parts[0]!.type === 'text') {
         return { role: 'user', content: parts[0]!.text }
       }
-      return {
-        role: 'user',
-        content: parts.map((part) => {
-          if (part.type === 'text') return { type: 'text' as const, text: part.text }
-          if (part.type === 'image') {
-            return { type: 'image_url' as const, image_url: { url: part.image } }
-          }
-          return { type: 'text' as const, text: '' }
-        }),
+
+      const contentParts = parts.map((part) => {
+        if (part.type === 'text') return { type: 'text' as const, text: part.text }
+        if (part.type === 'image') {
+          return { type: 'image_url' as const, image_url: { url: part.image } }
+        }
+        return { type: 'text' as const, text: '' }
+      })
+
+      // Append attachment images after inline content parts
+      for (const img of attachmentImages) {
+        contentParts.push({ type: 'image_url' as const, image_url: { url: img.image } })
       }
+
+      return { role: 'user', content: contentParts }
     }
     if (msg.role === 'assistant') return { role: 'assistant', content: extractText(msg.content) }
     if (msg.role === 'system') return { role: 'system', content: extractText(msg.content) }

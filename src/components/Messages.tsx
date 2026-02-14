@@ -1,4 +1,10 @@
-import { MessagePrimitive, BranchPickerPrimitive, ActionBarPrimitive } from '@assistant-ui/react'
+import {
+  MessagePrimitive,
+  BranchPickerPrimitive,
+  ActionBarPrimitive,
+  AttachmentPrimitive,
+  useAuiState,
+} from '@assistant-ui/react'
 import {
   CopyIcon,
   RefreshCwIcon,
@@ -8,7 +14,7 @@ import {
   WalletIcon,
 } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { forwardRef, type FC, type ReactNode } from 'react'
+import { forwardRef, useMemo, type FC, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/Markdown'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/config'
 
@@ -40,6 +46,33 @@ const ConnectWalletButton: FC = () => {
   )
 }
 
+/** Renders an image attachment in a sent user message. */
+const UserAttachmentImage: FC = () => {
+  const file = useAuiState((s) => s.attachment?.file)
+  const content = useAuiState((s) => s.attachment?.content)
+  const src = useMemo(() => {
+    if (file) return URL.createObjectURL(file)
+    const imgPart = content?.find((p: { type: string }) => p.type === 'image') as
+      | { type: 'image'; image: string }
+      | undefined
+    return imgPart?.image
+  }, [file, content])
+
+  if (!src) return null
+  return (
+    <AttachmentPrimitive.Root className="overflow-hidden rounded-lg">
+      <img
+        src={src}
+        alt=""
+        className="max-h-64 max-w-full rounded-lg object-contain"
+        onLoad={() => {
+          if (file) URL.revokeObjectURL(src)
+        }}
+      />
+    </AttachmentPrimitive.Root>
+  )
+}
+
 export const UserMessage: FC = () => (
   <MessagePrimitive.Root
     className="animate-in fade-in slide-in-from-bottom-1 group mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
@@ -47,6 +80,10 @@ export const UserMessage: FC = () => (
     data-role="user"
   >
     <div className="relative col-start-2 min-w-0">
+      {/* Image attachments */}
+      <div className="mb-2 flex flex-wrap justify-end gap-2 empty:hidden">
+        <MessagePrimitive.Attachments components={{ Image: UserAttachmentImage }} />
+      </div>
       <div className="wrap-break-word rounded-2xl bg-muted px-4 py-2.5 text-sm text-foreground">
         <MessagePrimitive.Content />
       </div>
