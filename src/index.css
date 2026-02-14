@@ -123,21 +123,9 @@ body {
   margin-bottom: 0;
 }
 
-/* Code blocks — CodeHeader + SyntaxHighlighter are siblings inside a Fragment.
-   Use data-code-header to group them visually as one block. */
-.aui-md [data-code-header] {
-  margin-top: 0.75rem;
-}
-.aui-md [data-code-header] + div {
-  margin-bottom: 0.75rem;
-}
-.aui-md [data-code-header] + div pre {
-  border-radius: 0 0 0.75rem 0.75rem;
-  overflow: hidden;
-}
-
-/* Standalone pre (no CodeHeader, e.g. unknown language) */
-.aui-md pre {
+/* Standalone pre (no SyntaxHighlighter wrapper, e.g. unknown language).
+   Pre inside our unified code block container is styled via Tailwind. */
+.aui-md > pre {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
   border-radius: 0.75rem;
