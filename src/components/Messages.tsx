@@ -28,27 +28,82 @@ const ACTION_BTN =
   'flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5'
 
 const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }) => {
-  if (text.startsWith(WALLET_PROMPT_MARKER)) {
-    return (
-      <div>
-        <p className="whitespace-pre-line">{text.slice(WALLET_PROMPT_MARKER.length)}</p>
-        <ConnectWalletButton />
-      </div>
-    )
-  }
+  if (text.startsWith(WALLET_PROMPT_MARKER)) return <OnboardingGuide />
   return <MarkdownText text={text} status={status} />
 }
 
-const ConnectWalletButton: FC = () => {
+/** Step indicator for the onboarding guide */
+const StepNumber: FC<{ n: number }> = ({ n }) => (
+  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-xs font-semibold text-foreground">
+    {n}
+  </span>
+)
+
+/** Onboarding guide shown when no wallet is connected */
+const OnboardingGuide: FC = () => {
   const { openConnectModal } = useConnectModal()
   return (
-    <button
-      onClick={openConnectModal}
-      className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-accent/50 px-4 py-2 text-sm font-medium text-foreground/90 transition-colors hover:bg-accent"
-    >
-      <WalletIcon className="size-4" />
-      Connect Wallet
-    </button>
+    <div className="space-y-4">
+      <p className="text-base font-medium text-foreground">Welcome to QNTX Chat</p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Pay-per-message AI powered by the{' '}
+        <a
+          href="https://www.x402.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-muted-foreground/40 underline-offset-2 transition-colors hover:text-foreground"
+        >
+          x402 protocol
+        </a>
+        . No subscriptions, no API keys — just connect a wallet and start chatting.
+      </p>
+
+      <div className="space-y-3 rounded-xl border border-border/60 bg-accent/30 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Getting Started
+        </p>
+        <div className="flex items-start gap-3">
+          <StepNumber n={1} />
+          <div className="text-sm leading-relaxed">
+            <span className="font-medium text-foreground">Bridge USDC to Monad</span>
+            <span className="text-muted-foreground">
+              {' '}
+              — Transfer a small amount of USDC to the Monad network. No native token (MON) needed.
+            </span>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <StepNumber n={2} />
+          <div className="space-y-2 text-sm leading-relaxed">
+            <div>
+              <span className="font-medium text-foreground">Connect your wallet</span>
+              <span className="text-muted-foreground">
+                {' '}
+                — Click the button or use the top-right corner.
+              </span>
+            </div>
+            <button
+              onClick={openConnectModal}
+              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-accent/50 px-4 py-2 text-sm font-medium text-foreground/90 transition-colors hover:bg-accent"
+            >
+              <WalletIcon className="size-4" />
+              Connect Wallet
+            </button>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <StepNumber n={3} />
+          <div className="text-sm leading-relaxed">
+            <span className="font-medium text-foreground">Start chatting</span>
+            <span className="text-muted-foreground">
+              {' '}
+              — Each message triggers a tiny USDC micropayment. You sign once per message, no gas
+              fees — the facilitator covers all transaction costs.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

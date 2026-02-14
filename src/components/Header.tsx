@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useAui } from '@assistant-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { WalletIcon, ChevronDownIcon, PanelLeftIcon } from 'lucide-react'
+import { WalletIcon, ChevronDownIcon, PanelLeftIcon, ExternalLinkIcon } from 'lucide-react'
 import { GITHUB_URL } from '@/lib/config'
 
 /** GitHub mark SVG — lucide deprecated all brand icons */
@@ -103,6 +103,17 @@ export function Header({
                     )}
                   </button>
                 )}
+
+                {/* Monadscan — view spending */}
+                <a
+                  href={`https://monadscan.com/address/${account.address}#tokentxns`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+                  aria-label="View on Monadscan"
+                >
+                  <ExternalLinkIcon className="size-4" />
+                </a>
 
                 {/* Account */}
                 <button
