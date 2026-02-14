@@ -6,7 +6,7 @@ import {
 } from '@assistant-ui/react'
 import { useX402Fetch } from '@/hooks/use-x402-fetch'
 import { createX402ChatAdapter } from '@/lib/x402'
-import { DEFAULT_MODEL } from '@/lib/config'
+import { useModel } from '@/providers/ModelProvider'
 
 /** Marker prefix used by ChatThread to detect wallet-not-connected messages */
 export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
@@ -32,13 +32,14 @@ const disconnectedAdapter: ChatModelAdapter = {
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { fetchWithPayment } = useX402Fetch()
+  const { selectedModel } = useModel()
 
   const adapter = useMemo<ChatModelAdapter>(
     () =>
       fetchWithPayment
-        ? createX402ChatAdapter(fetchWithPayment, DEFAULT_MODEL)
+        ? createX402ChatAdapter(fetchWithPayment, selectedModel)
         : disconnectedAdapter,
-    [fetchWithPayment],
+    [fetchWithPayment, selectedModel],
   )
 
   const runtime = useLocalRuntime(adapter)

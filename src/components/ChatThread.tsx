@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { WALLET_PROMPT_MARKER } from '@/providers/ChatProvider'
+import { ModelPicker } from '@/components/ModelPicker'
 
 const THREAD_MAX_W = '42rem'
 
@@ -71,7 +72,7 @@ const ThreadWelcome: FC = () => (
     <div className="flex w-full grow flex-col items-center justify-center">
       <div className="flex size-full flex-col justify-center px-4">
         <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
-          Pay-per-message chat
+          Pay-per-message
         </h1>
         <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both mt-3 text-xl text-muted-foreground delay-75 duration-200">
           No subscriptions. No API keys. Just connect and go.
@@ -85,7 +86,11 @@ const ThreadWelcome: FC = () => (
 // Suggestion cards — two-column grid matching the composer width
 const ThreadSuggestions: FC = () => (
   <div className="grid w-full grid-cols-2 gap-2 pb-4">
-    <ThreadPrimitive.Suggestion prompt="What is x402 and how does pay-per-message work?" send asChild>
+    <ThreadPrimitive.Suggestion
+      prompt="What is x402 and how does pay-per-message work?"
+      send
+      asChild
+    >
       <button className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex w-full flex-col items-start gap-1 rounded-2xl border border-border/60 px-4 py-3 text-left text-sm transition-colors duration-200 hover:bg-muted">
         <span className="font-medium">What is x402?</span>
         <span className="text-muted-foreground">and how does pay-per-message work</span>
@@ -135,7 +140,8 @@ const Composer: FC = () => (
       rows={1}
       autoFocus
     />
-    <div className="relative mx-2 mb-2 flex items-center justify-end gap-2">
+    <div className="relative mx-2 mb-2 flex items-center justify-between gap-2">
+      <ModelPicker />
       <AuiIf condition={(s) => s.thread.isRunning}>
         <ComposerPrimitive.Cancel asChild>
           <button
