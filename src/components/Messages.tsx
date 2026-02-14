@@ -57,7 +57,9 @@ const UserAttachmentImage: FC = () => {
   const file = useAuiState((s) => s.attachment?.file)
   const content = useAuiState((s) => s.attachment?.content)
   const src = useMemo(() => {
-    if (file) return URL.createObjectURL(file)
+    // File objects don't survive JSON serialization — only use if it's a real File
+    if (file instanceof File) return URL.createObjectURL(file)
+    // Fall back to the data URL stored in attachment.content
     const imgPart = content?.find((p: { type: string }) => p.type === 'image') as
       | { type: 'image'; image: string }
       | undefined

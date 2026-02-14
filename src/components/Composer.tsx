@@ -9,7 +9,7 @@ const SUBMIT_BTN =
 /** Renders a single image attachment thumbnail with a remove button. */
 const ComposerAttachmentImage: FC = () => {
   const file = useAuiState((s) => s.attachment?.file)
-  const src = useMemo(() => (file ? URL.createObjectURL(file) : undefined), [file])
+  const src = useMemo(() => (file instanceof File ? URL.createObjectURL(file) : undefined), [file])
 
   return (
     <AttachmentPrimitive.Root className="group relative size-14 shrink-0 overflow-hidden rounded-lg border border-border/60">

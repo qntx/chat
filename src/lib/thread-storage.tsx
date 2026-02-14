@@ -50,8 +50,31 @@ function loadRepo(remoteId: string): ExportedMessageRepository | null {
   }
 }
 
+/** Strip non-serializable File objects from attachments before persisting. */
+function sanitizeForStorage(repo: ExportedMessageRepository): ExportedMessageRepository {
+  return {
+    ...repo,
+    messages: repo.messages.map((item) => {
+      const msg = item.message
+      if (msg.role !== 'user' || !msg.attachments?.length) return item
+      return {
+        ...item,
+        message: {
+          ...msg,
+          attachments: msg.attachments.map(({ file: _file, ...rest }) => rest),
+        },
+      } as unknown as typeof item
+    }),
+  }
+}
+
 function saveRepo(remoteId: string, repo: ExportedMessageRepository): void {
-  localStorage.setItem(MESSAGES_KEY_PREFIX + remoteId, JSON.stringify(repo))
+  try {
+    localStorage.setItem(MESSAGES_KEY_PREFIX + remoteId, JSON.stringify(sanitizeForStorage(repo)))
+  } catch (e) {
+    // Quota exceeded — log but don't crash
+    console.warn('[thread-storage] Failed to persist messages:', e)
+  }
 }
 
 function removeMessages(remoteId: string): void {
