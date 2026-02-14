@@ -23,9 +23,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { forwardRef, useRef, useState, useCallback, useMemo, type FC, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/Markdown'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/config'
-
-const ACTION_BTN =
-  'flex size-7 items-center justify-center rounded-md p-1 transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-3.5'
+import { ACTION_BTN, WALLET_BTN } from '@/lib/styles'
 
 const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }) => {
   if (text.startsWith(WALLET_PROMPT_MARKER)) return <OnboardingGuide />
@@ -82,10 +80,7 @@ const OnboardingGuide: FC = () => {
                 — Click the button or use the top-right corner.
               </span>
             </div>
-            <button
-              onClick={openConnectModal}
-              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-accent/50 px-4 py-2 text-sm font-medium text-foreground/90 transition-colors hover:bg-accent"
-            >
+            <button onClick={openConnectModal} className={`py-2 ${WALLET_BTN}`}>
               <WalletIcon className="size-4" />
               Connect Wallet
             </button>
@@ -211,7 +206,7 @@ const CopyButton: FC = () => {
 
   return (
     <ActionBarPrimitive.Copy className={ACTION_BTN} onClick={handleCopy}>
-      {copied ? <CheckIcon className="text-green-400" /> : <CopyIcon />}
+      {copied ? <CheckIcon className="text-green-600 dark:text-green-400" /> : <CopyIcon />}
     </ActionBarPrimitive.Copy>
   )
 }

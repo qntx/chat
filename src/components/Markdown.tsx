@@ -1,20 +1,24 @@
-import { useState, useCallback, type FC } from 'react'
+import { useRef, useState, useCallback, type FC } from 'react'
 import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown'
 import type { SyntaxHighlighterProps, CodeHeaderProps } from '@assistant-ui/react-markdown'
 import ShikiHighlighter from 'react-shiki'
 import remarkGfm from 'remark-gfm'
 import { CheckIcon, CopyIcon } from 'lucide-react'
+import { useTheme } from '@/hooks/use-theme'
 
 const REMARK_PLUGINS = [remarkGfm]
 
 /** Renders the full code block: header bar + syntax-highlighted body in one container. */
 const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => {
+  const { resolved } = useTheme()
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code).then(() => {
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopied(false), 2000)
     })
   }, [code])
 
@@ -45,7 +49,7 @@ const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({ code, language }) => {
       {/* Code body */}
       <ShikiHighlighter
         language={language}
-        theme="github-dark"
+        theme={resolved === 'dark' ? 'github-dark' : 'github-light'}
         addDefaultStyles={false}
         showLanguage={false}
         className="!m-0 !rounded-none overflow-x-auto bg-code p-4 text-[13px] leading-relaxed"

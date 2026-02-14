@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import '@assistant-ui/react-markdown/styles/dot.css';
 
+/* Use class-based dark mode (.dark on <html>) instead of prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Brand typeface for logo/headings */
 @font-face {
   font-family: 'QNTX';
@@ -10,23 +13,47 @@
   font-display: swap;
 }
 
-/* ── Tailwind v4 theme tokens ────────────────────────────────── */
+/* ── Tailwind v4 theme tokens (light / Paper & Ink default) ── */
 @theme {
-  --color-background: hsl(0 0% 3.9%);
-  --color-foreground: hsl(0 0% 98%);
-  --color-muted: hsl(0 0% 14.9%);
-  --color-muted-foreground: hsl(0 0% 63.9%);
-  --color-accent: hsl(0 0% 14.9%);
-  --color-accent-foreground: hsl(0 0% 98%);
-  --color-border: hsl(0 0% 14.9%);
-  --color-input: hsl(0 0% 14.9%);
-  --color-ring: hsl(0 0% 83.1%);
-  --color-popover: hsl(0 0% 3.9%);
-  --color-popover-foreground: hsl(0 0% 98%);
-  --color-destructive: hsl(0 62.8% 30.6%);
-  --color-code: #24292e;
-  --color-code-header: #2d333b;
+  /* Light palette — matches qntx.fun official site */
+  --color-background: #f5f0e8;
+  --color-foreground: #1a1a1a;
+  --color-muted: #e8e0d0;
+  --color-muted-foreground: #888078;
+  --color-accent: #e8e0d0;
+  --color-accent-foreground: #1a1a1a;
+  --color-border: #d5d0c8;
+  --color-input: #ece5da;
+  --color-ring: #aaa;
+  --color-popover: #f5f0e8;
+  --color-popover-foreground: #1a1a1a;
+  --color-destructive: #b91c1c;
+  --color-code: #ede7dc;
+  --color-code-header: #e5ddd1;
   --radius: 0.5rem;
+
+  /* Typography matching the official site */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-brand: 'QNTX', sans-serif;
+}
+
+/* ── Dark palette (warm tones — Paper & Ink inverted) ──────── */
+.dark {
+  --color-background: #0f0e0c;
+  --color-foreground: #ede7dc;
+  --color-muted: #1e1c18;
+  --color-muted-foreground: #9a9488;
+  --color-accent: #1e1c18;
+  --color-accent-foreground: #ede7dc;
+  --color-border: #2a2722;
+  --color-input: #1e1c18;
+  --color-ring: #b5ad9e;
+  --color-popover: #141310;
+  --color-popover-foreground: #ede7dc;
+  --color-destructive: #991b1b;
+  --color-code: #18160f;
+  --color-code-header: #1e1c15;
 }
 
 /* ── Reset ────────────────────────────────────────────────────── */
@@ -39,25 +66,46 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
   background-color: var(--color-background);
   color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbar ────────────────────────────────────────────────── */
+/* ── Paper texture overlay (matches qntx.fun) ─────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.03;
+}
+
+/* ── Selection (matches qntx.fun) ──────────────────────────── */
+::selection {
+  background-color: rgba(26, 26, 26, 0.12);
+  color: var(--color-foreground);
+}
+.dark ::selection {
+  background-color: rgba(237, 231, 220, 0.15);
+}
+
+/* ── Scrollbar (matches qntx.fun — 4px, ghost color) ──────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-muted-foreground) 20%, transparent);
-  border-radius: 999px;
+  background: var(--color-border);
+  border-radius: 2px;
 }
 
 /* ── Markdown prose ───────────────────────────────────────────── */

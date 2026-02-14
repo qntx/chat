@@ -1,11 +1,18 @@
 import type { ReactNode } from 'react'
 import { useAui } from '@assistant-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { WalletIcon, ChevronDownIcon, PanelLeftIcon, ExternalLinkIcon } from 'lucide-react'
+import {
+  WalletIcon,
+  ChevronDownIcon,
+  PanelLeftIcon,
+  ExternalLinkIcon,
+  SunIcon,
+  MoonIcon,
+  MonitorIcon,
+} from 'lucide-react'
 import { GITHUB_URL } from '@/lib/config'
-
-const ICON_BTN =
-  'flex size-9 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground'
+import { ICON_BTN, WALLET_BTN } from '@/lib/styles'
+import { useTheme } from '@/hooks/use-theme'
 
 /** GitHub mark SVG — lucide deprecated all brand icons */
 const GitHubIcon = ({ className }: { className?: string }) => (
@@ -37,10 +44,7 @@ export function Header({
           className="flex items-center gap-0 transition-opacity hover:opacity-70"
           aria-label="New chat"
         >
-          <span
-            className="text-base font-semibold tracking-tight text-foreground"
-            style={{ fontFamily: '"QNTX", sans-serif' }}
-          >
+          <span className="font-brand text-base font-semibold tracking-tight text-foreground">
             qnTX
           </span>
           <span className="hidden text-xs text-muted-foreground/50 sm:inline">&nbsp;/&nbsp;</span>
@@ -50,6 +54,7 @@ export function Header({
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
+        <ThemeToggle />
         <HeaderIconLink href={GITHUB_URL} label="GitHub">
           <GitHubIcon className="size-5" />
         </HeaderIconLink>
@@ -60,10 +65,7 @@ export function Header({
 
             if (!account) {
               return (
-                <button
-                  onClick={openConnectModal}
-                  className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-accent/50 px-4 text-sm font-medium text-foreground/90 transition-colors hover:bg-accent"
-                >
+                <button onClick={openConnectModal} className={`h-9 ${WALLET_BTN}`}>
                   <WalletIcon className="size-4" />
                   <span className="hidden sm:inline">Connect</span>
                 </button>
@@ -74,7 +76,7 @@ export function Header({
               return (
                 <button
                   onClick={openChainModal}
-                  className="flex h-9 items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20"
+                  className="flex h-9 items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                 >
                   Wrong network
                 </button>
@@ -128,6 +130,24 @@ export function Header({
         </ConnectButton.Custom>
       </div>
     </header>
+  )
+}
+
+/** Theme toggle — cycles system → light → dark with matching icon. */
+function ThemeToggle() {
+  const { preference, toggleTheme } = useTheme()
+  const Icon = preference === 'system' ? MonitorIcon : preference === 'light' ? SunIcon : MoonIcon
+  const label =
+    preference === 'system'
+      ? 'Theme: System'
+      : preference === 'light'
+        ? 'Theme: Light'
+        : 'Theme: Dark'
+
+  return (
+    <button onClick={toggleTheme} className={ICON_BTN} aria-label={label} title={label}>
+      <Icon className="size-4" />
+    </button>
   )
 }
 

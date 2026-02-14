@@ -31,7 +31,7 @@ const ThreadWelcome: FC = () => (
   <div className="mx-auto flex w-full grow flex-col" style={{ maxWidth: MAX_THREAD_WIDTH }}>
     {/* Title — vertically centered in remaining space */}
     <div className="flex grow flex-col justify-center">
-      <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both text-2xl font-semibold duration-200">
+      <h1 className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both font-display text-2xl font-normal duration-200">
         Pay-per-message
       </h1>
       <p className="animate-in fade-in slide-in-from-bottom-1 fill-mode-both mt-2 text-base text-muted-foreground delay-75 duration-200">

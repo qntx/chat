@@ -41,6 +41,19 @@ function saveThreads(threads: RemoteThreadMetadata[]): void {
   localStorage.setItem(THREADS_KEY, JSON.stringify(threads))
 }
 
+/** Load threads, apply an updater to the matching entry, and save back. */
+function updateThread(
+  remoteId: string,
+  updater: (thread: RemoteThreadMetadata) => RemoteThreadMetadata,
+): void {
+  const threads = loadThreads()
+  const idx = threads.findIndex((t) => t.remoteId === remoteId)
+  if (idx >= 0) {
+    threads[idx] = updater(threads[idx]!)
+    saveThreads(threads)
+  }
+}
+
 function loadRepo(remoteId: string): ExportedMessageRepository | null {
   try {
     const raw = localStorage.getItem(MESSAGES_KEY_PREFIX + remoteId)
@@ -117,30 +130,15 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
     },
 
     async rename(remoteId: string, newTitle: string): Promise<void> {
-      const threads = loadThreads()
-      const idx = threads.findIndex((t) => t.remoteId === remoteId)
-      if (idx >= 0) {
-        threads[idx] = { ...threads[idx]!, title: newTitle }
-        saveThreads(threads)
-      }
+      updateThread(remoteId, (t) => ({ ...t, title: newTitle }))
     },
 
     async archive(remoteId: string): Promise<void> {
-      const threads = loadThreads()
-      const idx = threads.findIndex((t) => t.remoteId === remoteId)
-      if (idx >= 0) {
-        threads[idx] = { ...threads[idx]!, status: 'archived' }
-        saveThreads(threads)
-      }
+      updateThread(remoteId, (t) => ({ ...t, status: 'archived' }))
     },
 
     async unarchive(remoteId: string): Promise<void> {
-      const threads = loadThreads()
-      const idx = threads.findIndex((t) => t.remoteId === remoteId)
-      if (idx >= 0) {
-        threads[idx] = { ...threads[idx]!, status: 'regular' }
-        saveThreads(threads)
-      }
+      updateThread(remoteId, (t) => ({ ...t, status: 'regular' }))
     },
 
     async delete(remoteId: string): Promise<void> {
@@ -151,14 +149,7 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
 
     async generateTitle(remoteId: string, messages: readonly ThreadMessage[]) {
       const title = extractTitle(messages)
-
-      // Persist the generated title
-      const threads = loadThreads()
-      const idx = threads.findIndex((t) => t.remoteId === remoteId)
-      if (idx >= 0) {
-        threads[idx] = { ...threads[idx]!, title }
-        saveThreads(threads)
-      }
+      updateThread(remoteId, (t) => ({ ...t, title }))
 
       // Note: messages are persisted incrementally via ThreadHistoryAdapter.append()
 
