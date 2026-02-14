@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 build/
-/3rdparty
+3rdparty/
