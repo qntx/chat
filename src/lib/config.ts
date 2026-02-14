@@ -28,7 +28,7 @@ export const DEFAULT_MODEL = 'moonshot/kimi-k2.5'
 export const MAX_THREAD_WIDTH = '42rem'
 
 /** GitHub repository URL */
-export const GITHUB_URL = 'https://github.com/qntx/chat'
+export const GITHUB_URL = 'https://github.com/qntx'
 
 /** Marker prefix injected by the disconnected adapter, detected by WalletAwareText */
 export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
