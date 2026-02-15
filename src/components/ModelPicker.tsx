@@ -30,7 +30,6 @@ export const ModelPicker: FC = () => {
   // Auto-focus search input when popover opens
   useEffect(() => {
     if (open) {
-      setQuery('')
       requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
@@ -48,7 +47,12 @@ export const ModelPicker: FC = () => {
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => {
+            if (!v) setQuery('')
+            return !v
+          })
+        }}
         className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         aria-label="Select model"
       >
@@ -57,7 +61,7 @@ export const ModelPicker: FC = () => {
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-50 mb-1 flex max-h-96 w-72 flex-col rounded-xl border border-border bg-background shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="absolute bottom-full left-0 z-50 mb-1 flex max-h-96 w-80 flex-col rounded-xl border border-border bg-background shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-150">
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
             <input
@@ -127,12 +131,34 @@ const GroupedModelList: FC<{
                   IMG
                 </span>
               )}
+              <ModelPrice price={m.price} discountedPrice={m.discountedPrice} />
               {m.id === selected && <CheckIcon className="size-3 shrink-0" />}
             </button>
           ))}
         </div>
       ))}
     </>
+  )
+}
+
+/** Compact price tag — shows discounted price with strikethrough original */
+const ModelPrice: FC<{ price: string | null; discountedPrice: string | null }> = ({
+  price,
+  discountedPrice,
+}) => {
+  if (!price) return null
+
+  if (discountedPrice && discountedPrice !== price) {
+    return (
+      <span className="shrink-0 text-[10px] tabular-nums">
+        <span className="text-muted-foreground/40 line-through">${price}</span>{' '}
+        <span className="font-medium text-green-600 dark:text-green-400">${discountedPrice}</span>
+      </span>
+    )
+  }
+
+  return (
+    <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/60">${price}</span>
   )
 }
 

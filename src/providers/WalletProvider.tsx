@@ -2,8 +2,8 @@ import { useMemo, type ReactNode } from 'react'
 import { WagmiProvider } from 'wagmi'
 import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { wagmiConfig } from '@/lib/config'
-import { useTheme } from '@/hooks/use-theme'
+import { wagmiConfig } from '@/lib/wagmi'
+import { useTheme } from '@/providers/ThemeProvider'
 
 import '@rainbow-me/rainbowkit/styles.css'
 

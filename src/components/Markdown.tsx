@@ -4,7 +4,7 @@ import type { SyntaxHighlighterProps, CodeHeaderProps } from '@assistant-ui/reac
 import ShikiHighlighter from 'react-shiki'
 import remarkGfm from 'remark-gfm'
 import { CheckIcon, CopyIcon } from 'lucide-react'
-import { useTheme } from '@/hooks/use-theme'
+import { useTheme } from '@/providers/ThemeProvider'
 
 const REMARK_PLUGINS = [remarkGfm]
 

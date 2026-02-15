@@ -1,7 +1,7 @@
 {
   "name": "chat",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -28,7 +28,7 @@
     "react-shiki": "^0.9.1",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.18",
-    "viem": "^2.45.3",
+    "viem": "^2.46.0",
     "wagmi": "^3.4.3"
   },
   "devDependencies": {

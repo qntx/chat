@@ -7,9 +7,9 @@ import {
   type ChatModelAdapter,
 } from '@assistant-ui/react'
 import { useX402Fetch } from '@/hooks/use-x402-fetch'
-import { createX402ChatAdapter } from '@/lib/x402'
+import { createX402ChatAdapter } from '@/lib/chat-adapter'
 import { useModel } from '@/providers/ModelProvider'
-import { WALLET_PROMPT_MARKER } from '@/lib/config'
+import { WALLET_PROMPT_MARKER } from '@/lib/constants'
 import { createLocalStorageThreadListAdapter } from '@/lib/thread-storage'
 
 /** Fallback adapter shown when no wallet is connected */

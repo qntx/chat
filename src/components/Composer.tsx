@@ -2,6 +2,7 @@ import { ComposerPrimitive, AttachmentPrimitive, AuiIf, useAuiState } from '@ass
 import { SendIcon, SquareIcon, ImagePlusIcon, XIcon } from 'lucide-react'
 import { useMemo, type FC } from 'react'
 import { ModelPicker } from '@/components/ModelPicker'
+import { useModel } from '@/providers/ModelProvider'
 
 const SUBMIT_BTN =
   'flex size-8 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-80'
@@ -55,8 +56,9 @@ export const Composer: FC = () => (
           <ImagePlusIcon className="size-4" />
         </button>
       </ComposerPrimitive.AddAttachment>
-      {/* Right: model picker + send/stop */}
+      {/* Right: price + model picker + send/stop */}
       <div className="flex items-center gap-2">
+        <CurrentPrice />
         <ModelPicker />
         <AuiIf condition={(s) => s.thread.isRunning}>
           <ComposerPrimitive.Cancel asChild>
@@ -76,3 +78,21 @@ export const Composer: FC = () => (
     </div>
   </ComposerPrimitive.Root>
 )
+
+/** Compact price tag showing the current model's cost per message */
+const CurrentPrice: FC = () => {
+  const { models, selectedModel, pricing } = useModel()
+  const current = models.find((m) => m.id === selectedModel)
+
+  const price = current?.discountedPrice ?? current?.price ?? pricing.defaultPrice
+  if (!price) return null
+
+  return (
+    <span
+      className="text-[10px] tabular-nums text-muted-foreground/60"
+      title={`~$${price} USDC per message`}
+    >
+      ~${price}
+    </span>
+  )
+}

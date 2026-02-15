@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ThemeProvider } from '@/hooks/use-theme'
+import { ThemeProvider } from '@/providers/ThemeProvider'
 import { WalletProvider } from '@/providers/WalletProvider'
 import { ModelProvider } from '@/providers/ModelProvider'
 import { ChatProvider } from '@/providers/ChatProvider'

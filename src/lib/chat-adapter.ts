@@ -1,7 +1,7 @@
 import type { ChatModelAdapter } from '@assistant-ui/react'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import OpenAI from 'openai'
-import { GATEWAY_URL, DEFAULT_MODEL } from './config'
+import { GATEWAY_URL, DEFAULT_MODEL } from './constants'
 import type { ModelType } from '@/providers/ModelProvider'
 
 // Fetch sanitization

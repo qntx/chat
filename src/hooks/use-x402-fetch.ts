@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useWalletClient } from 'wagmi'
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch'
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm'
-import { createSanitizedFetch } from '@/lib/x402'
+import { createSanitizedFetch } from '@/lib/chat-adapter'
 
 /**
  * Hook that creates an x402-enhanced fetch bound to the connected wallet.
@@ -34,8 +34,31 @@ export function useX402Fetch() {
     // if the domain chainId doesn't match the wallet's active chain.
     client.register(`eip155:${walletClient.chain.id}`, new ExactEvmScheme(signer))
 
-    return wrapFetchWithPayment(createSanitizedFetch(), client)
+    const baseFetch = createSanitizedFetch()
+    const walletAddress = walletClient.account.address
+
+    // Wrap the base fetch to inject the X-Wallet-Address header on every
+    // request so the gateway can apply token-holding discounts.
+    //
+    // IMPORTANT: When wrapFetchWithPayment retries after a 402, it passes
+    // a Request object with PAYMENT-SIGNATURE already set and no `init`.
+    // We must preserve those headers — otherwise the retry loses the
+    // payment signature and gets another 402.
+    const fetchWithWalletHeader: typeof fetch = (input, init) => {
+      const base = init?.headers ?? (input instanceof Request ? input.headers : undefined)
+      const headers = new Headers(base)
+      if (!headers.has('x-wallet-address')) {
+        headers.set('x-wallet-address', walletAddress)
+      }
+      return baseFetch(input, { ...init, headers })
+    }
+
+    return wrapFetchWithPayment(fetchWithWalletHeader, client)
   }, [walletClient])
 
-  return { fetchWithPayment, isReady: !!fetchWithPayment }
+  return {
+    fetchWithPayment,
+    walletAddress: walletClient?.account?.address ?? null,
+    isReady: !!fetchWithPayment,
+  }
 }

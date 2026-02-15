@@ -4,8 +4,10 @@ import {
   ThreadListItemMorePrimitive,
   AuiIf,
 } from '@assistant-ui/react'
-import { PlusIcon, MoreHorizontalIcon, ArchiveIcon, TrashIcon } from 'lucide-react'
+import { PlusIcon, MoreHorizontalIcon, ArchiveIcon, TrashIcon, SparklesIcon } from 'lucide-react'
 import type { FC } from 'react'
+import { QNTX_TOKEN_URL } from '@/lib/constants'
+import { useHasDiscount } from '@/hooks/use-has-discount'
 
 export const ThreadList: FC = () => (
   <ThreadListPrimitive.Root className="flex h-full flex-col gap-1 p-2">
@@ -18,6 +20,7 @@ export const ThreadList: FC = () => (
         <ThreadListPrimitive.Items components={{ ThreadListItem }} />
       </div>
     </AuiIf>
+    <SidebarPromo />
   </ThreadListPrimitive.Root>
 )
 
@@ -82,3 +85,25 @@ const ThreadListItemMore: FC = () => (
     </ThreadListItemMorePrimitive.Content>
   </ThreadListItemMorePrimitive.Root>
 )
+
+/** Compact promo card pinned to sidebar bottom — hidden for token holders */
+const SidebarPromo: FC = () => {
+  const { hasDiscount } = useHasDiscount()
+
+  if (hasDiscount) return null
+
+  return (
+    <a
+      href={QNTX_TOKEN_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-auto flex items-center gap-2 rounded-lg border border-purple-200/40 bg-gradient-to-r from-purple-500/5 to-transparent p-2.5 text-xs text-muted-foreground transition-colors hover:border-purple-300/60 hover:text-foreground dark:border-purple-500/15 dark:hover:border-purple-400/30"
+    >
+      <SparklesIcon className="size-3.5 shrink-0 text-purple-500 dark:text-purple-400" />
+      <span>
+        Hold <span className="font-medium text-purple-600 dark:text-purple-400">QNTX</span> for up
+        to 50% off
+      </span>
+    </a>
+  )
+}

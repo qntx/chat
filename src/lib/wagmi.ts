@@ -16,27 +16,8 @@ const monad = {
   iconBackground: 'transparent',
 } as const
 
-// App constants
-
-/** Gateway endpoint for x402-protected LLM API */
-export const GATEWAY_URL = 'https://llm.qntx.fun'
-
-/** Default model to use for chat completions */
-export const DEFAULT_MODEL = 'moonshot/kimi-k2.5'
-
-/** Max width for thread content (messages, composer, welcome) */
-export const MAX_THREAD_WIDTH = '42rem'
-
-/** GitHub repository URL */
-export const GITHUB_URL = 'https://github.com/qntx'
-
-/** Marker prefix injected by the disconnected adapter, detected by WalletAwareText */
-export const WALLET_PROMPT_MARKER = '@@CONNECT_WALLET@@'
-
 /** WalletConnect project ID — replace with your own from https://cloud.walletconnect.com */
 const WALLETCONNECT_PROJECT_ID = 'd95fae64c47b28d0fa1cb252d50b5000'
-
-// Wagmi / RainbowKit config
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'x402 Chat',

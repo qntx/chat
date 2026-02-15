@@ -173,8 +173,7 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
   }
 }
 
-// ── Provider that injects per-thread history adapter ────────────
-
+// Provider that injects per-thread history adapter
 function ThreadHistoryProvider({ children }: PropsWithChildren) {
   const remoteId = useAuiState((s) => s.threadListItem.remoteId)
 
@@ -184,8 +183,7 @@ function ThreadHistoryProvider({ children }: PropsWithChildren) {
   return <RuntimeAdapterProvider adapters={adapters}>{children}</RuntimeAdapterProvider>
 }
 
-// ── localStorage-backed ThreadHistoryAdapter ────────────────────
-
+// localStorage-backed ThreadHistoryAdapter
 function useLocalStorageHistoryAdapter(remoteId: string | undefined) {
   const load = useCallback(async () => {
     if (!remoteId) return { messages: [] }
