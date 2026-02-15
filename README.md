@@ -9,65 +9,55 @@
 </p>
 
 <p align="center">
+  <a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD%203--Clause-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Vite-7.3-646CFF?logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Monad-USDC-000000" alt="Monad">
+  <img src="https://img.shields.io/badge/Protocol-x402-orange" alt="x402">
+</p>
+
+<p align="center">
   <a href="https://chat.qntx.fun">Live Demo</a>&ensp;·&ensp;
-  <a href="https://www.x402.org">x402 Protocol</a>&ensp;·&ensp;
-  <a href="https://github.com/qntx">GitHub</a>
+  <a href="https://docs.qntx.fun">Documentation</a>&ensp;·&ensp;
+  <a href="https://nad.fun/tokens/0x4Daab757f758689Afbb3848A037bd4A2ae107777">Token</a>
 </p>
 
 ---
 
 ## Overview
 
-QNTX Chat is a fully client-side AI chat interface that replaces API keys and subscription plans with per-message USDC micropayments on [Monad](https://monad.xyz). It implements the [x402 payment protocol](https://www.x402.org/) — the HTTP-native payment standard maintained by Coinbase Developer Platform.
+QNTX Chat is a fully client-side AI chat interface that replaces API keys and subscription plans with per-message USDC micropayments on [Monad](https://monad.xyz).
 
 **No registration. No backend accounts. No vendor lock-in.**
 
 ## Architecture
 
-```text
-Client sends prompt
-       │
-       ▼
-Gateway returns HTTP 402 + price envelope
-       │
-       ▼
-SDK signs USDC transfer (EIP-3009)
-       │
-       ▼
-Facilitator verifies & settles on Monad
-       │
-       ▼
-LLM response streams back to client
+```mermaid
+graph TD
+    A[Client] --> B[Gateway: HTTP 402]
+    B --> C[SDK: Sign payment]
+    C --> D[Facilitator: Settle]
+    D --> E[LLM: Stream response]
+    
+    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style B fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style C fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style D fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style E fill:#f9f9f9,stroke:#333,stroke-width:2px
 ```
 
 Every interaction follows the same stateless request–payment–response cycle. The client holds no session state; the gateway holds no user credentials.
 
 ## Features
 
-| Capability | Detail |
-| --- | --- |
-| **Multi-model routing** | GPT-4o · GPT-5.2 · Claude · Gemini · Llama · DeepSeek |
-| **Image generation** | DALL-E · Flux · Stable Diffusion |
-| **Streaming** | Real-time token-by-token output via SSE |
-| **Autonomous settlement** | Per-message on-chain USDC transfer — no manual approval |
-| **Client-side only** | Zero backend state, zero stored keys |
+- **Multi-model support** — Access GPT-4o, GPT-5.2, Claude, Gemini, Llama, and DeepSeek through a unified interface
+- **Image generation** — DALL-E, Flux, and Stable Diffusion endpoints available via the same payment protocol
+- **Server-sent events** — Real-time token streaming for all text generation models
+- **Autonomous micropayments** — Per-message USDC settlement on Monad with zero manual approval flow
+- **Stateless architecture** — No backend accounts, no session persistence, no API key storage
 
-## Token Economics
-
-The QNTX token ([nad.fun](https://nad.fun)) is wired into the payment loop. Holding QNTX grants **on-chain verified tiered discounts** applied at settlement time:
-
-| Tier | Required Balance | Discount |
-| --- | --- | --- |
-| Base | 0 | — |
-| Bronze | ≥ 1,000 | 5 % |
-| Silver | ≥ 10,000 | 10 % |
-| Gold | ≥ 100,000 | 20 % |
-
-Discount tiers are read directly from the caller's QNTX balance on Monad — no off-chain lookup, no trust assumptions.
-
-Trading activity on nad.fun generates [creator fees](https://nad-fun.gitbook.io/nad.fun) (30 % of post-graduation LP fees) that flow back to the project.
-
-## x402 Infrastructure
+## x402 SDK
 
 QNTX Chat is the reference frontend for a full open-source x402 payment stack:
 
@@ -90,6 +80,27 @@ QNTX Chat is the reference frontend for a full open-source x402 payment stack:
 
 The goal: autonomous agents that settle payments, communicate peer-to-peer, and prove identity — entirely on-chain.
 
+## Token Economics
+
+The **QNTX** token ([nad.fun](https://nad.fun/tokens/0x4Daab757f758689Afbb3848A037bd4A2ae107777)) is wired into the payment loop. Holding QNTX grants **on-chain verified tiered discounts** applied at settlement time:
+
+| Required Balance | Discount |
+| --- | --- |
+| ≥ 1 | 1 % |
+| ≥ 10,000 | 3 % |
+| ≥ 50,000 | 5 % |
+| ≥ 100,000 | 8 % |
+| ≥ 500,000 | 12 % |
+| ≥ 1,000,000 | 18 % |
+| ≥ 5,000,000 | 25 % |
+| ≥ 10,000,000 | 35 % |
+| ≥ 50,000,000 | 45 % |
+| ≥ 100,000,000 | 50 % |
+
+Discount tiers are read directly from the caller's QNTX balance on Monad — no off-chain lookup, no trust assumptions.
+
+Trading activity on nad.fun generates [creator fees](https://nad-fun.gitbook.io/nad.fun) (30 % of post-graduation LP fees) that flow back to the project.
+
 ## License
 
-BSD 3-Clause — see [LICENSE](LICENSE).
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
