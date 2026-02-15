@@ -261,3 +261,35 @@ body::before {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
 }
+
+/* ── Payment stepper ───────────────────────────────────────── */
+
+/* Gentle pulse on the active step node */
+.payment-stepper-pulse {
+  animation: stepper-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes stepper-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(128, 128, 128, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(128, 128, 128, 0);
+  }
+}
+
+/* Blinking dot next to the description text */
+.payment-stepper-dot {
+  animation: stepper-dot 1.4s ease-in-out infinite;
+}
+
+@keyframes stepper-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}

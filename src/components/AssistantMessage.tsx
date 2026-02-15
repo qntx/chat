@@ -4,13 +4,26 @@ import { forwardRef, type FC } from 'react'
 import { BranchPicker } from '@/components/BranchPicker'
 import { MarkdownText } from '@/components/Markdown'
 import { OnboardingGuide } from '@/components/OnboardingGuide'
+import { PaymentStepper } from '@/components/PaymentStepper'
 import { useCopyFeedback } from '@/hooks/use-copy-feedback'
+import { usePaymentPhase } from '@/lib/payment-phase'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/constants'
 import { ACTION_BTN } from '@/lib/styles'
 
-/** Detects the wallet-connect marker and renders the onboarding guide instead. */
+/**
+ * Detects special markers and renders contextual UI:
+ * - Wallet-connect marker → onboarding guide
+ * - Empty text during payment → payment stepper (Sign → Verify → Generate)
+ * - Normal text → markdown
+ */
 const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }) => {
+  const phase = usePaymentPhase()
+
   if (text.startsWith(WALLET_PROMPT_MARKER)) return <OnboardingGuide />
+
+  // Show stepper during active payment phases instead of a blank bubble.
+  if (!text && phase !== 'idle') return <PaymentStepper />
+
   return <MarkdownText text={text} status={status} />
 }
 

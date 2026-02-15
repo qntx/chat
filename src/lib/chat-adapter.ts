@@ -2,6 +2,7 @@ import type { ChatModelAdapter } from '@assistant-ui/react'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import OpenAI from 'openai'
 import { GATEWAY_URL, DEFAULT_MODEL } from './constants'
+import { setPaymentPhase } from './payment-phase'
 import type { ModelType } from '@/providers/ModelProvider'
 
 // Fetch sanitization
@@ -119,8 +120,8 @@ function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
       const openaiMessages = toOpenAIMessages(messages)
 
       try {
-        // Immediately signal "running" so the typing indicator appears
-        // while waiting for wallet signature + server first response.
+        // Signal payment flow start — stepper will appear in the message bubble.
+        setPaymentPhase('signing')
         yield { content: [{ type: 'text' as const, text: '' }] }
 
         const stream = await openai.chat.completions.create(
@@ -132,16 +133,20 @@ function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
         for await (const chunk of stream) {
           const delta = chunk.choices[0]?.delta?.content
           if (delta) {
+            // First real content — transition to streaming phase.
+            if (!text) setPaymentPhase('streaming')
             text += delta
             yield { content: [{ type: 'text' as const, text }] }
           }
         }
 
+        setPaymentPhase('idle')
         yield {
           content: [{ type: 'text' as const, text: text || '🤷 No response received.' }],
           status: { type: 'complete' as const, reason: 'stop' as const },
         }
       } catch (err) {
+        setPaymentPhase('idle')
         const message = err instanceof Error ? err.message : String(err)
         console.error('[x402] Chat request failed:', message)
         yield {
@@ -177,8 +182,9 @@ function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
       }
 
       try {
-        // Show loading state
-        yield { content: [{ type: 'text' as const, text: '🎨 Generating image…' }] }
+        // Signal payment flow start — stepper will appear in the message bubble.
+        setPaymentPhase('signing')
+        yield { content: [{ type: 'text' as const, text: '' }] }
 
         // Don't force response_format — DALL-E supports 'url' but most
         // other providers (Google Imagen, OpenRouter proxied models) only
@@ -196,6 +202,7 @@ function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
         const revisedPrompt = item?.revised_prompt
 
         if (!imageSrc) {
+          setPaymentPhase('idle')
           yield {
             content: [
               {
@@ -216,11 +223,13 @@ function createImageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
           content.push({ type: 'text' as const, text: revisedPrompt })
         }
 
+        setPaymentPhase('idle')
         yield {
           content,
           status: { type: 'complete' as const, reason: 'stop' as const },
         }
       } catch (err) {
+        setPaymentPhase('idle')
         const message = err instanceof Error ? err.message : String(err)
         console.error('[x402] Image generation failed:', message)
         yield {

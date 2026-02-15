@@ -3,6 +3,7 @@ import { useWalletClient } from 'wagmi'
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch'
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm'
 import { createSanitizedFetch } from '@/lib/chat-adapter'
+import { setPaymentPhase } from '@/lib/payment-phase'
 
 /**
  * Hook that creates an x402-enhanced fetch bound to the connected wallet.
@@ -44,12 +45,26 @@ export function useX402Fetch() {
     // a Request object with PAYMENT-SIGNATURE already set and no `init`.
     // We must preserve those headers — otherwise the retry loses the
     // payment signature and gets another 402.
+    //
+    // Phase detection: when x402 retries with a payment header, the wallet
+    // has already signed — transition from 'signing' → 'verifying'.
     const fetchWithWalletHeader: typeof fetch = (input, init) => {
       const base = init?.headers ?? (input instanceof Request ? input.headers : undefined)
       const headers = new Headers(base)
       if (!headers.has('x-wallet-address')) {
         headers.set('x-wallet-address', walletAddress)
       }
+
+      // Detect payment retry: presence of payment header means signing
+      // is done and the server is now verifying + settling the payment.
+      const hasPayment =
+        headers.has('x-payment') ||
+        headers.has('payment') ||
+        [...headers.keys()].some((k) => k.toLowerCase().includes('payment-'))
+      if (hasPayment) {
+        setPaymentPhase('verifying')
+      }
+
       return baseFetch(input, { ...init, headers })
     }
 
