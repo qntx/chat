@@ -39,16 +39,15 @@ export function useDiscount(walletAddress: string | null) {
     let cancelled = false
 
     fetch(`${GATEWAY_URL}/v1/discount?address=${encodeURIComponent(walletAddress)}`)
-      .then((res) => res.json())
+      .then((res) => {
+        // Non-2xx responses (404 = not configured, 502 = query failed)
+        // are treated as "no discount available".
+        if (!res.ok) return null
+        return res.json()
+      })
       .then((data) => {
         if (cancelled) return
-        // The endpoint returns `{ error: ... }` when discount is not
-        // configured or the address is invalid.
-        if (data.error) {
-          setInfo(null)
-        } else {
-          setInfo(data as DiscountInfo)
-        }
+        setInfo(data as DiscountInfo | null)
       })
       .catch(() => {
         if (!cancelled) setInfo(null)
