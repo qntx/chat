@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect, useMemo, type FC } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback, type FC } from 'react'
 import { ChevronDownIcon, CheckIcon, SearchIcon } from 'lucide-react'
 import { useModel, type ModelInfo } from '@/providers/ModelProvider'
+import { useClickOutside } from '@/hooks/use-click-outside'
 
 /** Compact model selector shown in the composer action bar. */
 export const ModelPicker: FC = () => {
@@ -10,22 +11,8 @@ export const ModelPicker: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Close on outside click or Escape
-  useEffect(() => {
-    if (!open) return
-    const onMouse = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onMouse)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onMouse)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useClickOutside(containerRef, close, open)
 
   // Auto-focus search input when popover opens
   useEffect(() => {

@@ -1,13 +1,10 @@
-import { useCallback, useMemo, type PropsWithChildren } from 'react'
 import {
-  RuntimeAdapterProvider,
-  useAuiState,
   type ThreadMessage,
   type ExportedMessageRepository,
-  type ExportedMessageRepositoryItem,
   type unstable_RemoteThreadListAdapter as RemoteThreadListAdapter,
 } from '@assistant-ui/react'
 import { createAssistantStream } from 'assistant-stream'
+import { ThreadHistoryProvider } from '@/providers/ThreadHistoryProvider'
 
 type RemoteThreadMetadata = {
   readonly status: 'regular' | 'archived'
@@ -54,7 +51,7 @@ function updateThread(
   }
 }
 
-function loadRepo(remoteId: string): ExportedMessageRepository | null {
+export function loadRepo(remoteId: string): ExportedMessageRepository | null {
   try {
     const raw = localStorage.getItem(MESSAGES_KEY_PREFIX + remoteId)
     return raw ? JSON.parse(raw) : null
@@ -81,7 +78,7 @@ function sanitizeForStorage(repo: ExportedMessageRepository): ExportedMessageRep
   }
 }
 
-function saveRepo(remoteId: string, repo: ExportedMessageRepository): void {
+export function saveRepo(remoteId: string, repo: ExportedMessageRepository): void {
   try {
     localStorage.setItem(MESSAGES_KEY_PREFIX + remoteId, JSON.stringify(sanitizeForStorage(repo)))
   } catch (e) {
@@ -171,42 +168,4 @@ export function createLocalStorageThreadListAdapter(): RemoteThreadListAdapter {
     // Inject ThreadHistoryAdapter into each thread's LocalRuntime
     unstable_Provider: ThreadHistoryProvider,
   }
-}
-
-// Provider that injects per-thread history adapter
-function ThreadHistoryProvider({ children }: PropsWithChildren) {
-  const remoteId = useAuiState((s) => s.threadListItem.remoteId)
-
-  const history = useLocalStorageHistoryAdapter(remoteId)
-  const adapters = useMemo(() => ({ history }), [history])
-
-  return <RuntimeAdapterProvider adapters={adapters}>{children}</RuntimeAdapterProvider>
-}
-
-// localStorage-backed ThreadHistoryAdapter
-function useLocalStorageHistoryAdapter(remoteId: string | undefined) {
-  const load = useCallback(async () => {
-    if (!remoteId) return { messages: [] }
-    return loadRepo(remoteId) ?? { messages: [] }
-  }, [remoteId])
-
-  const append = useCallback(
-    async (item: ExportedMessageRepositoryItem) => {
-      if (!remoteId) return
-      const repo = loadRepo(remoteId) ?? { messages: [] }
-      // Update or add the message in the repository
-      const idx = repo.messages.findIndex((m) => m.message.id === item.message.id)
-      if (idx >= 0) {
-        repo.messages[idx] = item
-      } else {
-        repo.messages.push(item)
-      }
-      // Always update headId to the latest message
-      repo.headId = item.message.id
-      saveRepo(remoteId, repo)
-    },
-    [remoteId],
-  )
-
-  return useMemo(() => ({ load, append }), [load, append])
 }

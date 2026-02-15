@@ -1,21 +1,10 @@
-import {
-  MessagePrimitive,
-  BranchPickerPrimitive,
-  ActionBarPrimitive,
-  useAuiState,
-} from '@assistant-ui/react'
-import {
-  CopyIcon,
-  CheckIcon,
-  RefreshCwIcon,
-  LoaderIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from 'lucide-react'
-import { forwardRef, useRef, useState, useCallback, type FC } from 'react'
+import { MessagePrimitive, ActionBarPrimitive, useAuiState } from '@assistant-ui/react'
+import { CopyIcon, CheckIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react'
+import { forwardRef, type FC } from 'react'
+import { BranchPicker } from '@/components/BranchPicker'
 import { MarkdownText } from '@/components/Markdown'
 import { OnboardingGuide } from '@/components/OnboardingGuide'
-import { IconBtn } from '@/components/IconBtn'
+import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/constants'
 import { ACTION_BTN } from '@/lib/styles'
 
@@ -27,16 +16,10 @@ const WalletAwareText: FC<{ text: string; status: unknown }> = ({ text, status }
 
 /** Copy button with visual feedback — icon changes to checkmark for 2s after click. */
 const CopyButton: FC = () => {
-  const [copied, setCopied] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
-  const handleCopy = useCallback(() => {
-    setCopied(true)
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [])
+  const { copied, onCopy } = useCopyFeedback()
 
   return (
-    <ActionBarPrimitive.Copy className={ACTION_BTN} onClick={handleCopy}>
+    <ActionBarPrimitive.Copy className={ACTION_BTN} onClick={onCopy}>
       {copied ? <CheckIcon className="text-green-600 dark:text-green-400" /> : <CopyIcon />}
     </ActionBarPrimitive.Copy>
   )
@@ -66,28 +49,6 @@ const AssistantImage: FC<{ image: string }> = ({ image }) => (
       />
     </a>
   </div>
-)
-
-/** Branch picker for navigating message variants. */
-const BranchPicker: FC<{ className?: string }> = ({ className }) => (
-  <BranchPickerPrimitive.Root
-    hideWhenSingleBranch
-    className={`inline-flex items-center text-xs text-muted-foreground ${className ?? ''}`}
-  >
-    <BranchPickerPrimitive.Previous asChild>
-      <IconBtn tooltip="Previous">
-        <ChevronLeftIcon />
-      </IconBtn>
-    </BranchPickerPrimitive.Previous>
-    <span className="font-medium">
-      <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
-    </span>
-    <BranchPickerPrimitive.Next asChild>
-      <IconBtn tooltip="Next">
-        <ChevronRightIcon />
-      </IconBtn>
-    </BranchPickerPrimitive.Next>
-  </BranchPickerPrimitive.Root>
 )
 
 export const AssistantMessage: FC = () => (

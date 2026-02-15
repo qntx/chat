@@ -3,6 +3,7 @@ import { WalletIcon, SparklesIcon } from 'lucide-react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { QNTX_TOKEN_URL } from '@/lib/constants'
 import { WALLET_BTN } from '@/lib/styles'
+import { DiscountTiers } from '@/components/DiscountTiers'
 
 /** Step indicator circle */
 const StepNumber: FC<{ n: number }> = ({ n }) => (
@@ -90,6 +91,9 @@ export const OnboardingGuide: FC = () => {
               </a>{' '}
               to unlock up to 50% off every message.
             </span>
+            <div className="mt-2 rounded-lg border border-purple-200/30 bg-purple-500/5 p-3 dark:border-purple-500/10">
+              <DiscountTiers />
+            </div>
           </div>
         </div>
       </div>

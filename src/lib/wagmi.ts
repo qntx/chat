@@ -16,8 +16,9 @@ const monad = {
   iconBackground: 'transparent',
 } as const
 
-/** WalletConnect project ID — replace with your own from https://cloud.walletconnect.com */
-const WALLETCONNECT_PROJECT_ID = 'd95fae64c47b28d0fa1cb252d50b5000'
+/** WalletConnect project ID — override via VITE_WC_PROJECT_ID env var */
+const WALLETCONNECT_PROJECT_ID =
+  import.meta.env.VITE_WC_PROJECT_ID ?? 'd95fae64c47b28d0fa1cb252d50b5000'
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'x402 Chat',

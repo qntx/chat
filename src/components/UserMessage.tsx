@@ -1,16 +1,16 @@
 import {
   MessagePrimitive,
-  BranchPickerPrimitive,
   ActionBarPrimitive,
   AttachmentPrimitive,
   ComposerPrimitive,
   AuiIf,
   useAuiState,
 } from '@assistant-ui/react'
-import { PencilIcon, ChevronLeftIcon, ChevronRightIcon, SendIcon, XIcon } from 'lucide-react'
+import { PencilIcon, SendIcon, XIcon } from 'lucide-react'
 import { useMemo, type FC } from 'react'
-import { MAX_THREAD_WIDTH } from '@/lib/constants'
+import { BranchPicker } from '@/components/BranchPicker'
 import { IconBtn } from '@/components/IconBtn'
+import { MAX_THREAD_WIDTH } from '@/lib/constants'
 
 /** Renders an image attachment in a sent user message. */
 const UserAttachmentImage: FC = () => {
@@ -83,28 +83,6 @@ const UserMessageDisplay: FC = () => (
       </ActionBarPrimitive.Root>
     </div>
   </div>
-)
-
-/** Branch picker for navigating message variants. */
-const BranchPicker: FC<{ className?: string }> = ({ className }) => (
-  <BranchPickerPrimitive.Root
-    hideWhenSingleBranch
-    className={`inline-flex items-center text-xs text-muted-foreground ${className ?? ''}`}
-  >
-    <BranchPickerPrimitive.Previous asChild>
-      <IconBtn tooltip="Previous">
-        <ChevronLeftIcon />
-      </IconBtn>
-    </BranchPickerPrimitive.Previous>
-    <span className="font-medium">
-      <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
-    </span>
-    <BranchPickerPrimitive.Next asChild>
-      <IconBtn tooltip="Next">
-        <ChevronRightIcon />
-      </IconBtn>
-    </BranchPickerPrimitive.Next>
-  </BranchPickerPrimitive.Root>
 )
 
 export const UserMessage: FC = () => (

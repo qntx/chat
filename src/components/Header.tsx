@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useAui } from '@assistant-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { WalletIcon, ChevronDownIcon, PanelLeftIcon, ExternalLinkIcon } from 'lucide-react'
-import { GITHUB_URL } from '@/lib/constants'
+import { GITHUB_URL, explorerAddressUrl } from '@/lib/constants'
 import { ICON_BTN, WALLET_BTN } from '@/lib/styles'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { DiscountBadge } from '@/components/DiscountBadge'
@@ -101,32 +101,34 @@ export function Header({
             return (
               <div className="flex items-center gap-1">
                 {chain && (
-                  <button
-                    onClick={openChainModal}
-                    className={`${ICON_BTN} text-foreground`}
-                    aria-label={chain.name ?? 'Switch network'}
-                  >
-                    {chain.hasIcon && chain.iconUrl ? (
-                      <img
-                        src={chain.iconUrl}
-                        alt={chain.name ?? 'Chain'}
-                        className="size-5 rounded-full"
-                        style={{ background: chain.iconBackground }}
-                      />
-                    ) : (
-                      <span className="size-5 rounded-full bg-muted" />
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={openChainModal}
+                      className={`${ICON_BTN} text-foreground`}
+                      aria-label={chain.name ?? 'Switch network'}
+                    >
+                      {chain.hasIcon && chain.iconUrl ? (
+                        <img
+                          src={chain.iconUrl}
+                          alt={chain.name ?? 'Chain'}
+                          className="size-5 rounded-full"
+                          style={{ background: chain.iconBackground }}
+                        />
+                      ) : (
+                        <span className="size-5 rounded-full bg-muted" />
+                      )}
+                    </button>
+                    <a
+                      href={explorerAddressUrl(chain.id, account.address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={ICON_BTN}
+                      aria-label="View on block explorer"
+                    >
+                      <ExternalLinkIcon className="size-4" />
+                    </a>
+                  </>
                 )}
-                <a
-                  href={`https://monadscan.com/address/${account.address}#tokentxns`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={ICON_BTN}
-                  aria-label="View on Monadscan"
-                >
-                  <ExternalLinkIcon className="size-4" />
-                </a>
                 <DiscountBadge address={account.address} />
                 <button
                   onClick={openAccountModal}
