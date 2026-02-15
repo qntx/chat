@@ -41,7 +41,7 @@ export const OnboardingGuide: FC = () => {
             <span className="font-medium text-foreground">Bridge USDC to Monad</span>
             <span className="text-muted-foreground">
               {' '}
-              — Transfer a small amount of USDC to the Monad network. No native token (MON) needed.
+              — Transfer a small amount of USDC to the Monad network.
             </span>
           </div>
         </div>
@@ -68,7 +68,7 @@ export const OnboardingGuide: FC = () => {
             <span className="text-muted-foreground">
               {' '}
               — Each message triggers a tiny USDC micropayment. You sign once per message, no gas
-              fees — the facilitator covers all transaction costs.
+              fees — our x402 facilitator covers all transaction costs.
             </span>
           </div>
         </div>
