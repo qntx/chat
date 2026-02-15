@@ -88,9 +88,9 @@ const ThreadListItemMore: FC = () => (
 
 /** Compact promo card pinned to sidebar bottom — hidden for token holders */
 const SidebarPromo: FC = () => {
-  const { hasDiscount } = useHasDiscount()
+  const { hasDiscount, loading } = useHasDiscount()
 
-  if (hasDiscount) return null
+  if (hasDiscount || loading) return null
 
   return (
     <a

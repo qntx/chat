@@ -21,7 +21,7 @@ export interface DiscountInfo {
  */
 export function useDiscount(walletAddress: string | null) {
   const [info, setInfo] = useState<DiscountInfo | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(!!walletAddress)
   const [prevAddress, setPrevAddress] = useState(walletAddress)
 
   // Reset state when wallet address changes during render

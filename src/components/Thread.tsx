@@ -30,7 +30,7 @@ export function ChatThread() {
 }
 
 const ThreadWelcome: FC = () => {
-  const { hasDiscount } = useHasDiscount()
+  const { hasDiscount, loading } = useHasDiscount()
 
   return (
     <div className="mx-auto flex w-full grow flex-col" style={{ maxWidth: MAX_THREAD_WIDTH }}>
@@ -44,7 +44,7 @@ const ThreadWelcome: FC = () => {
         </p>
       </div>
       {/* QNTX discount promo — hidden for token holders */}
-      {!hasDiscount && (
+      {!hasDiscount && !loading && (
         <a
           href={QNTX_TOKEN_URL}
           target="_blank"
