@@ -5,7 +5,8 @@
 <h2 align="center">QNTX Chat</h2>
 
 <p align="center">
-  Permissionless LLM access via HTTP 402 micropayments.
+  Agent-ready infrastructure for permissionless AI access.<br/>
+  Built for the autonomous agent era.
 </p>
 
 <p align="center">
@@ -27,9 +28,9 @@
 
 ## Overview
 
-QNTX Chat is a fully client-side AI chat interface that replaces API keys and subscription plans with per-message USDC micropayments on [Monad](https://monad.xyz).
+QNTX Chat is a fully client-side AI chat interface that replaces API keys and subscription plans with per-message USDC micropayments on [Monad](https://monad.xyz). Built for the autonomous agent era — where agents operate independently with their own wallets and settle payments on-chain.
 
-**No registration. No backend accounts. No vendor lock-in.**
+**No registration. No backend accounts. No vendor lock-in. Just autonomous agents with wallets.**
 
 ## Architecture
 
@@ -51,15 +52,15 @@ Every interaction follows the same stateless request–payment–response cycle.
 
 ## Features
 
-- **Multi-model support** — Access GPT-4o, GPT-5.2, Claude, Gemini, Llama, and DeepSeek through a unified interface
-- **Image generation** — DALL-E, Flux, and Stable Diffusion endpoints available via the same payment protocol
-- **Server-sent events** — Real-time token streaming for all text generation models
-- **Autonomous micropayments** — Per-message USDC settlement on Monad with zero manual approval flow
-- **Stateless architecture** — No backend accounts, no session persistence, no API key storage
+- **Agent-native design** — Autonomous agents can access any LLM with just a wallet, no human intervention required
+- **Multi-model support** — GPT-4o, GPT-5.2, Claude, Gemini, Llama, DeepSeek through a unified interface
+- **Image generation** — DALL-E, Flux, and Stable Diffusion via the same payment protocol
+- **Autonomous micropayments** — Per-message USDC settlement on Monad with zero manual approval
+- **Stateless architecture** — No backend accounts, no session state, no API key management
 
 ## Developer SDKs
 
-Access any LLM with nothing but a wallet — no API keys, no subscriptions, no vendor lock-in.
+**Agent-ready SDKs** — Enable autonomous agents to access any LLM with just a wallet. No API keys, no subscriptions, no vendor lock-in.
 
 ### Python
 
@@ -93,19 +94,21 @@ const res = await client.chat.completions.create({
 console.log(res.choices[0]?.message.content);
 ```
 
-Every request auto-settles on Monad. No registration, no billing dashboard — **just code and a wallet**.
+Every request auto-settles on Monad. **Perfect for autonomous agents** — no registration, no billing dashboard, just code and a wallet.
 
 **Repositories:** [`x402-openai-python`](https://github.com/qntx/x402-openai-python) · [`x402-openai-typescript`](https://github.com/qntx/x402-openai-typescript)
 
 ## Infrastructure
 
-Built on a fully open-source stack:
+Built on QNTX's self-contained open-source ecosystem — designed for the autonomous agent era:
 
 - **[`facilitator`](https://github.com/qntx/facilitator)** — Settlement server for on-chain payment verification
 - **[`r402`](https://github.com/qntx/r402)** — Rust implementation of the x402 protocol
-- **[`kobe`](https://github.com/qntx/kobe)** — Multi-chain wallet derivation (`no_std` Rust)
 - **[`ra2a`](https://github.com/qntx/ra2a)** — Agent-to-agent communication protocol (Rust)
 - **[`erc8004`](https://github.com/qntx/erc8004)** — Trustless agent identity standard (ERC-8004)
+- **[`kobe`](https://github.com/qntx/kobe)** — Multi-chain wallet derivation for embedded agents (`no_std` Rust)
+
+All components developed and maintained by the QNTX organization. **Ready for autonomous agents today.**
 
 ## Token Economics
 
