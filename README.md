@@ -97,17 +97,15 @@ Every request auto-settles on Monad. No registration, no billing dashboard — *
 
 **Repositories:** [`x402-openai-python`](https://github.com/qntx/x402-openai-python) · [`x402-openai-typescript`](https://github.com/qntx/x402-openai-typescript)
 
-## Ecosystem
+## Infrastructure
 
-### Machi Agent Framework
+Built on a fully open-source stack:
 
-[Machi](https://github.com/qntx/machi) is a Web3-native AI agent framework built on x402 infrastructure:
-
-- **[`kobe`](https://github.com/qntx/kobe)** — Embedded multi-chain wallet derivation (`no_std` Rust)
-- **[`ra2a`](https://github.com/qntx/ra2a)** — Rust SDK for the A2A communication protocol
-- **[`erc8004`](https://github.com/qntx/erc8004)** — ERC-8004 Trustless Agents SDK
-
-Autonomous agents that settle payments, communicate peer-to-peer, and prove identity — entirely on-chain.
+- **[`facilitator`](https://github.com/qntx/facilitator)** — Settlement server for on-chain payment verification
+- **[`r402`](https://github.com/qntx/r402)** — Rust implementation of the x402 protocol
+- **[`kobe`](https://github.com/qntx/kobe)** — Multi-chain wallet derivation (`no_std` Rust)
+- **[`ra2a`](https://github.com/qntx/ra2a)** — Agent-to-agent communication protocol (Rust)
+- **[`erc8004`](https://github.com/qntx/erc8004)** — Trustless agent identity standard (ERC-8004)
 
 ## Token Economics
 
