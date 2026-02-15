@@ -57,28 +57,57 @@ Every interaction follows the same stateless request–payment–response cycle.
 - **Autonomous micropayments** — Per-message USDC settlement on Monad with zero manual approval flow
 - **Stateless architecture** — No backend accounts, no session persistence, no API key storage
 
-## x402 SDK
+## Developer SDKs
 
-QNTX Chat is the reference frontend for a full open-source x402 payment stack:
+Access any LLM with nothing but a wallet — no API keys, no subscriptions, no vendor lock-in.
 
-| Repository | Description |
-| --- | --- |
-| [`x402-openai-python`](https://github.com/qntx/x402-openai-python) | Drop-in OpenAI Python SDK with x402 wallet payments |
-| [`x402-openai-typescript`](https://github.com/qntx/x402-openai-typescript) | Drop-in OpenAI TypeScript SDK with x402 wallet payments |
-| [`r402`](https://github.com/qntx/r402) | Rust SDK for the x402 payment protocol |
-| [`facilitator`](https://github.com/qntx/facilitator) | Production settlement server for on-chain verification |
+### Python
 
-## Roadmap — Machi
+```python
+from x402_openai import X402OpenAI
+from x402_openai.wallets import EvmWallet
 
-[Machi](https://github.com/qntx/machi) is a Web3-native AI agent framework built on the same x402 infrastructure:
+client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
-| Layer | Repository | Description |
-| --- | --- | --- |
-| HD Wallets | [`kobe`](https://github.com/qntx/kobe) | Embedded multi-chain wallet derivation (`no_std` Rust) |
-| Agent-to-Agent | [`ra2a`](https://github.com/qntx/ra2a) | Rust SDK for the A2A communication protocol |
-| On-chain Identity | [`erc8004`](https://github.com/qntx/erc8004) | ERC-8004 Trustless Agents SDK |
+res = client.chat.completions.create(
+    model="openai/gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(res.choices[0].message.content)
+```
 
-The goal: autonomous agents that settle payments, communicate peer-to-peer, and prove identity — entirely on-chain.
+### TypeScript
+
+```typescript
+import { X402OpenAI } from "x402-openai";
+import { EvmWallet } from "x402-openai/wallets";
+
+const client = new X402OpenAI({
+  wallet: new EvmWallet({ privateKey: "0x…" }),
+});
+
+const res = await client.chat.completions.create({
+  model: "openai/gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello!" }],
+});
+console.log(res.choices[0]?.message.content);
+```
+
+Every request auto-settles on Monad. No registration, no billing dashboard — **just code and a wallet**.
+
+**Repositories:** [`x402-openai-python`](https://github.com/qntx/x402-openai-python) · [`x402-openai-typescript`](https://github.com/qntx/x402-openai-typescript)
+
+## Ecosystem
+
+### Machi Agent Framework
+
+[Machi](https://github.com/qntx/machi) is a Web3-native AI agent framework built on x402 infrastructure:
+
+- **[`kobe`](https://github.com/qntx/kobe)** — Embedded multi-chain wallet derivation (`no_std` Rust)
+- **[`ra2a`](https://github.com/qntx/ra2a)** — Rust SDK for the A2A communication protocol
+- **[`erc8004`](https://github.com/qntx/erc8004)** — ERC-8004 Trustless Agents SDK
+
+Autonomous agents that settle payments, communicate peer-to-peer, and prove identity — entirely on-chain.
 
 ## Token Economics
 
