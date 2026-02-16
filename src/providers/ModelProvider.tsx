@@ -40,44 +40,23 @@ const EXCLUDE_PATTERNS = [
   'computer-use',
 ]
 
-/**
- * Fallback patterns for dedicated image generation models (images.generate API).
- * Only used when the gateway does not return `architecture.output_modalities`.
- */
-const IMAGE_GEN_FALLBACK = ['dall-e', 'gpt-image', 'flux', 'stable-diffusion', 'midjourney']
+/** Dedicated image-generation models that use images.generate (not chat.completions). */
+const IMAGE_GEN_PATTERNS = ['dall-e', 'gpt-image', 'flux', 'stable-diffusion', 'midjourney']
 
-/** Raw model object from the /v1/models response. */
-interface RawModel {
+/** Classify model type from API metadata or name-based fallback. */
+function classifyModel(m: {
   id: string
-  architecture?: {
-    output_modalities?: string[]
-    input_modalities?: string[]
-  }
-}
-
-/**
- * Determine model type from API metadata when available, with name-based
- * fallback for gateways that don't return `architecture.output_modalities`.
- *
- * Priority: API metadata > name-based heuristic
- */
-function classifyModel(m: RawModel): ModelType {
+  architecture?: { output_modalities?: string[] }
+}): ModelType {
   const out = m.architecture?.output_modalities
-
-  // Prefer API metadata (OpenRouter provides this reliably)
-  if (out && out.length > 0) {
-    const hasText = out.includes('text')
+  if (out?.length) {
     const hasImage = out.includes('image')
-    if (hasImage && hasText) return 'multimodal'
-    if (hasImage) return 'image'
-    return 'chat'
+    return hasImage && out.includes('text') ? 'multimodal' : hasImage ? 'image' : 'chat'
   }
-
-  // Fallback: name-based heuristic for gateways without metadata
-  const lower = m.id.toLowerCase()
-  if (IMAGE_GEN_FALLBACK.some((p) => lower.includes(p))) return 'image'
-  if (lower.includes('image')) return 'multimodal'
-  return 'chat'
+  // Fallback: name-based heuristic
+  const id = m.id.toLowerCase()
+  if (IMAGE_GEN_PATTERNS.some((p) => id.includes(p))) return 'image'
+  return id.includes('image') ? 'multimodal' : 'chat'
 }
 
 const ModelContext = createContext<ModelContextValue | null>(null)
@@ -112,7 +91,8 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         ])
 
         const modelsJson = await modelsRes.json()
-        const data: RawModel[] = modelsJson.data ?? []
+        const data: { id: string; architecture?: { output_modalities?: string[] } }[] =
+          modelsJson.data ?? []
 
         // Build pricing lookup map: model → { price, discountedPrice }
         const priceMap = new Map<string, { price: string; discountedPrice?: string }>()

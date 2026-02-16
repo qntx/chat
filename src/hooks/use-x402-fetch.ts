@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useWalletClient } from 'wagmi'
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch'
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm'
-import { createSanitizedFetch } from '@/lib/chat-adapter'
+import { createSanitizedFetch } from '@/lib/fetch'
 import { setPaymentPhase } from '@/lib/payment-phase'
 
 /**
