@@ -7,6 +7,7 @@ import {
   useMemo,
   type ReactNode,
 } from 'react'
+import { useAccount } from 'wagmi'
 import { GATEWAY_URL, DEFAULT_MODEL } from '@/lib/constants'
 
 export type ModelType = 'chat' | 'image'
@@ -97,71 +98,61 @@ const DEFAULT_PRICING: PricingData = {
   discountPercent: null,
 }
 
+/** Model metadata without pricing (fetched once from /v1/models). */
+interface RawModel {
+  id: string
+  provider: string
+  type: ModelType
+  canGenerateImages: boolean
+  canAcceptImages: boolean
+}
+
+/** Per-model price entry from the /v1/pricing endpoint. */
+interface PriceEntry {
+  price: string
+  discountedPrice?: string
+}
+
 export function ModelProvider({ children }: { children: ReactNode }) {
-  const [models, setModels] = useState<ModelInfo[]>([])
+  const { address } = useAccount()
+  const [rawModels, setRawModels] = useState<RawModel[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
   const [imageMode, setImageMode] = useState(false)
   const [pricing, setPricing] = useState<PricingData>(DEFAULT_PRICING)
+  const [priceMap, setPriceMap] = useState<Map<string, PriceEntry>>(new Map())
 
+  // Fetch model metadata once (no pricing dependency)
   useEffect(() => {
     let cancelled = false
 
-    async function fetchModelsAndPricing() {
+    async function fetchModels() {
       try {
-        // Fetch models and pricing in parallel
-        const [modelsRes, pricingRes] = await Promise.all([
-          fetch(`${GATEWAY_URL}/v1/models`),
-          fetch(`${GATEWAY_URL}/v1/pricing`).catch(() => null),
-        ])
-
-        const modelsJson = await modelsRes.json()
+        const res = await fetch(`${GATEWAY_URL}/v1/models`)
+        const json = await res.json()
         const data: {
           id: string
           architecture?: { input_modalities?: string[]; output_modalities?: string[] }
-        }[] = modelsJson.data ?? []
+        }[] = json.data ?? []
 
-        // Build pricing lookup map: model → { price, discountedPrice }
-        const priceMap = new Map<string, { price: string; discountedPrice?: string }>()
-        let pricingData = DEFAULT_PRICING
-
-        if (pricingRes?.ok) {
-          const pj = await pricingRes.json()
-          pricingData = {
-            defaultPrice: pj.default_price ?? '0.01',
-            defaultDiscountedPrice: pj.default_discounted_price ?? null,
-            discountPercent: pj.discount_percent ?? null,
-          }
-          for (const m of pj.models ?? []) {
-            priceMap.set(m.model, {
-              price: m.price,
-              discountedPrice: m.discounted_price,
-            })
-          }
-        }
-
-        const chatModels: ModelInfo[] = data
+        const parsed: RawModel[] = data
           .filter(isUsableModel)
           .map((m) => {
             const { type, canGenerateImages, canAcceptImages } = classifyModel(m)
-            const pm = priceMap.get(m.id)
             return {
               id: m.id,
               provider: m.id.includes('/') ? m.id.split('/')[0]! : 'unknown',
               type,
               canGenerateImages,
               canAcceptImages,
-              price: pm?.price ?? pricingData.defaultPrice,
-              discountedPrice: pm?.discountedPrice ?? pricingData.defaultDiscountedPrice,
             }
           })
           .sort((a, b) => a.id.localeCompare(b.id))
 
         if (!cancelled) {
-          setModels(chatModels)
-          setPricing(pricingData)
-          if (chatModels.length > 0 && !chatModels.some((m) => m.id === DEFAULT_MODEL)) {
-            setSelectedModel(chatModels[0]!.id)
+          setRawModels(parsed)
+          if (parsed.length > 0 && !parsed.some((m) => m.id === DEFAULT_MODEL)) {
+            setSelectedModel(parsed[0]!.id)
           }
         }
       } catch (err) {
@@ -171,11 +162,68 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    fetchModelsAndPricing()
+    fetchModels()
     return () => {
       cancelled = true
     }
   }, [])
+
+  // Fetch pricing — re-runs when wallet address changes
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchPricing() {
+      try {
+        const url = address
+          ? `${GATEWAY_URL}/v1/pricing?address=${encodeURIComponent(address)}`
+          : `${GATEWAY_URL}/v1/pricing`
+
+        const res = await fetch(url)
+        if (!res.ok) return
+
+        const pj = await res.json()
+        const nextPricing: PricingData = {
+          defaultPrice: pj.default_price ?? '0.01',
+          defaultDiscountedPrice: pj.default_discounted_price ?? null,
+          discountPercent: pj.discount_percent ?? null,
+        }
+
+        const nextMap = new Map<string, PriceEntry>()
+        for (const m of pj.models ?? []) {
+          nextMap.set(m.model, {
+            price: m.price,
+            discountedPrice: m.discounted_price,
+          })
+        }
+
+        if (!cancelled) {
+          setPricing(nextPricing)
+          setPriceMap(nextMap)
+        }
+      } catch {
+        // Pricing fetch is best-effort; keep previous state
+      }
+    }
+
+    fetchPricing()
+    return () => {
+      cancelled = true
+    }
+  }, [address])
+
+  // Merge raw model metadata with pricing data
+  const models = useMemo<ModelInfo[]>(
+    () =>
+      rawModels.map((m) => {
+        const pm = priceMap.get(m.id)
+        return {
+          ...m,
+          price: pm?.price ?? pricing.defaultPrice,
+          discountedPrice: pm?.discountedPrice ?? pricing.defaultDiscountedPrice,
+        }
+      }),
+    [rawModels, priceMap, pricing],
+  )
 
   const currentModel = useMemo(
     () => models.find((m) => m.id === selectedModel),

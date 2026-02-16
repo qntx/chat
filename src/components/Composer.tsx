@@ -1,5 +1,5 @@
 import { ComposerPrimitive, AttachmentPrimitive, AuiIf, useAuiState } from '@assistant-ui/react'
-import { SendIcon, SquareIcon, ImagePlusIcon, ImageIcon, XIcon } from 'lucide-react'
+import { SendIcon, SquareIcon, ImagePlusIcon, ImageIcon, XIcon, SparklesIcon } from 'lucide-react'
 import { useMemo, type FC } from 'react'
 import { ModelPicker } from '@/components/ModelPicker'
 import { useModel } from '@/providers/ModelProvider'
@@ -104,19 +104,39 @@ export const Composer: FC = () => {
   )
 }
 
-/** Compact price tag showing the current model's cost per message */
+/** Compact price tag showing the current model's cost per message, with discount awareness. */
 const CurrentPrice: FC = () => {
   const { currentModel, pricing } = useModel()
 
-  const price = currentModel?.discountedPrice ?? currentModel?.price ?? pricing.defaultPrice
-  if (!price) return null
+  const originalPrice = currentModel?.price ?? pricing.defaultPrice
+  const discountedPrice = currentModel?.discountedPrice ?? pricing.defaultDiscountedPrice
+  const discountPercent = pricing.discountPercent
+
+  if (!originalPrice) return null
+
+  const hasDiscount = discountedPrice && discountedPrice !== originalPrice
+
+  if (hasDiscount) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] tabular-nums"
+        title={`${discountPercent ? `${discountPercent}% off — ` : ''}~$${discountedPrice} USDC per message (was $${originalPrice})`}
+      >
+        <span className="text-muted-foreground/30 line-through">~${originalPrice}</span>
+        <span className="font-medium text-foreground/80">~${discountedPrice}</span>
+        {discountPercent != null && discountPercent > 0 && (
+          <SparklesIcon className="size-2.5 text-muted-foreground/50" />
+        )}
+      </span>
+    )
+  }
 
   return (
     <span
       className="text-[10px] tabular-nums text-muted-foreground/60"
-      title={`~$${price} USDC per message`}
+      title={`~$${originalPrice} USDC per message`}
     >
-      ~${price}
+      ~${originalPrice}
     </span>
   )
 }

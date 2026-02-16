@@ -166,8 +166,8 @@ const ModelPrice: FC<{ price: string | null; discountedPrice: string | null }> =
   if (discountedPrice && discountedPrice !== price) {
     return (
       <span className="shrink-0 text-[10px] tabular-nums">
-        <span className="text-muted-foreground/40 line-through">${price}</span>{' '}
-        <span className="font-medium text-green-600 dark:text-green-400">${discountedPrice}</span>
+        <span className="text-muted-foreground/30 line-through">${price}</span>{' '}
+        <span className="font-medium text-foreground/80">${discountedPrice}</span>
       </span>
     )
   }
