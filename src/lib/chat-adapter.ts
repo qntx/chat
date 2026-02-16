@@ -61,6 +61,7 @@ function buildImagePrompt(messages: Parameters<ChatModelAdapter['run']>[0]['mess
   let context = lines.join('\n')
   // Truncate context if too long, keeping room for the final prompt
   const maxContextLen = IMG_PROMPT_MAX_CHARS - lastPrompt.length - 50
+  if (maxContextLen <= 0) return lastPrompt
   if (context.length > maxContextLen) {
     context = '...' + context.slice(-(maxContextLen - 3))
   }
