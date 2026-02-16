@@ -130,7 +130,7 @@ const GroupedModelList: FC<{
   )
 }
 
-/** Capability badge: image-only → IMG, chat with image capability → Chat+IMG. */
+/** Capability badge: image-only → IMG, chat+gen → Chat+IMG, vision → Vision. */
 const ModelBadge: FC<{ model: ModelInfo }> = ({ model }) => {
   if (model.type === 'image') {
     return (
@@ -143,6 +143,13 @@ const ModelBadge: FC<{ model: ModelInfo }> = ({ model }) => {
     return (
       <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
         Chat+IMG
+      </span>
+    )
+  }
+  if (model.canAcceptImages) {
+    return (
+      <span className="shrink-0 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-500/15 dark:text-green-400">
+        Vision
       </span>
     )
   }
