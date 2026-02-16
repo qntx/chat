@@ -92,8 +92,10 @@ function toOpenAIMessages(
  * streaming — while the x402-wrapped fetch transparently handles 402 payment
  * challenges. Header sanitization is applied via `createSanitizedFetch`.
  *
- * When modelType is 'image', the adapter calls images.generate instead of
- * chat.completions.create, and yields the result as an image content part.
+ * Routing by model type:
+ * - 'chat'       → chat.completions.create (text only)
+ * - 'multimodal' → chat.completions.create (text + native image generation)
+ * - 'image'      → images.generate (dedicated image generators like DALL-E)
  */
 export function createX402ChatAdapter(
   fetchFn: typeof globalThis.fetch,
@@ -110,11 +112,22 @@ export function createX402ChatAdapter(
   if (modelType === 'image') {
     return createImageAdapter(openai, model)
   }
-  return createChatAdapter(openai, model)
+  return createChatAdapter(openai, model, modelType === 'multimodal')
 }
 
-/** Adapter for streaming chat completions */
-function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
+/**
+ * Adapter for streaming chat completions.
+ *
+ * When `multimodal` is true, passes `modalities: ['text', 'image']` so the
+ * model can return native image content alongside text (e.g. Gemini Image).
+ * Images arrive in `delta.images` per the OpenRouter streaming format and
+ * are rendered inline in the chat.
+ */
+function createChatAdapter(
+  openai: OpenAI,
+  model: string,
+  multimodal = false,
+): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       const openaiMessages = toOpenAIMessages(messages)
@@ -124,25 +137,53 @@ function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
         setPaymentPhase('signing')
         yield { content: [{ type: 'text' as const, text: '' }] }
 
+        // For multimodal models, request both text and image output.
+        // `modalities` with 'image' is a provider extension (OpenRouter / Gemini)
+        // not in the base OpenAI SDK types, so we cast through the streaming type.
         const stream = await openai.chat.completions.create(
-          { model, messages: openaiMessages, stream: true },
+          {
+            model,
+            messages: openaiMessages,
+            stream: true,
+            ...(multimodal ? { modalities: ['text', 'image'] } : {}),
+          } as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
           { signal: abortSignal },
         )
 
         let text = ''
+        const images: string[] = []
+
         for await (const chunk of stream) {
-          const delta = chunk.choices[0]?.delta?.content
-          if (delta) {
-            // First real content — transition to streaming phase.
-            if (!text) setPaymentPhase('streaming')
-            text += delta
-            yield { content: [{ type: 'text' as const, text }] }
+          const delta = chunk.choices[0]?.delta
+
+          // Standard text content
+          if (delta?.content) {
+            if (!text && images.length === 0) setPaymentPhase('streaming')
+            text += delta.content
+            yield { content: buildContent(text, images) }
+          }
+
+          // Native image content (OpenRouter multimodal format).
+          // `delta.images` is a provider extension not in the OpenAI SDK types.
+          const deltaImages = (delta as unknown as Record<string, unknown> | undefined)
+            ?.images as { image_url?: { url?: string } }[] | undefined
+          if (deltaImages) {
+            if (!text && images.length === 0) setPaymentPhase('streaming')
+            for (const img of deltaImages) {
+              const url = img.image_url?.url
+              if (url) images.push(url)
+            }
+            yield { content: buildContent(text, images) }
           }
         }
 
         setPaymentPhase('idle')
+        const finalContent = buildContent(text, images)
+        if (finalContent.length === 0) {
+          finalContent.push({ type: 'text' as const, text: '🤷 No response received.' })
+        }
         yield {
-          content: [{ type: 'text' as const, text: text || '🤷 No response received.' }],
+          content: finalContent,
           status: { type: 'complete' as const, reason: 'stop' as const },
         }
       } catch (err) {
@@ -156,6 +197,21 @@ function createChatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
       }
     },
   }
+}
+
+/** Build mixed content array from accumulated text and images. */
+function buildContent(
+  text: string,
+  images: string[],
+): ({ type: 'text'; text: string } | { type: 'image'; image: string })[] {
+  const parts: ({ type: 'text'; text: string } | { type: 'image'; image: string })[] = []
+  for (const url of images) {
+    parts.push({ type: 'image' as const, image: url })
+  }
+  if (text) {
+    parts.push({ type: 'text' as const, text })
+  }
+  return parts
 }
 
 /** Adapter for image generation via images.generate */

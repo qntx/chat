@@ -113,11 +113,7 @@ const GroupedModelList: FC<{
               }`}
             >
               <span className="flex-1 truncate">{stripPrefix(m.id)}</span>
-              {m.type === 'image' && (
-                <span className="shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
-                  IMG
-                </span>
-              )}
+              <ModelBadge type={m.type} />
               <ModelPrice price={m.price} discountedPrice={m.discountedPrice} />
               {m.id === selected && <CheckIcon className="size-3 shrink-0" />}
             </button>
@@ -126,6 +122,25 @@ const GroupedModelList: FC<{
       ))}
     </>
   )
+}
+
+/** Capability badge showing what a model can do. */
+const ModelBadge: FC<{ type: ModelInfo['type'] }> = ({ type }) => {
+  if (type === 'multimodal') {
+    return (
+      <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
+        Chat+IMG
+      </span>
+    )
+  }
+  if (type === 'image') {
+    return (
+      <span className="shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
+        IMG
+      </span>
+    )
+  }
+  return null
 }
 
 /** Compact price tag — shows discounted price with strikethrough original */
