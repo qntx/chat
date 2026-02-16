@@ -25,6 +25,49 @@ const extractText = (parts: readonly { type: string; text?: string }[]) =>
     .map((p) => p.text)
     .join('')
 
+/** Max messages to include as context for image generation */
+const IMG_CONTEXT_LIMIT = 10
+/** Max total characters for the image prompt */
+const IMG_PROMPT_MAX_CHARS = 2000
+
+/**
+ * Build image generation prompt with conversation context.
+ * Format: [Conversation]\nUser: ...\nAssistant: ...\n\n[Generate]\n<last message>
+ */
+function buildImagePrompt(messages: Parameters<ChatModelAdapter['run']>[0]['messages']): string {
+  if (messages.length === 0) return ''
+
+  const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+  const lastPrompt = lastUser ? extractText(lastUser.content) : ''
+  if (!lastPrompt.trim()) return ''
+
+  // Single message — no context needed
+  if (messages.length === 1) return lastPrompt
+
+  // Build context from recent messages (excluding the last user message)
+  const contextMsgs = messages.slice(-IMG_CONTEXT_LIMIT, -1)
+  if (contextMsgs.length === 0) return lastPrompt
+
+  const lines: string[] = []
+  for (const msg of contextMsgs) {
+    const txt = extractText(msg.content).trim()
+    if (!txt) continue
+    const role = msg.role === 'user' ? 'User' : 'Assistant'
+    lines.push(`${role}: ${txt}`)
+  }
+
+  if (lines.length === 0) return lastPrompt
+
+  let context = lines.join('\n')
+  // Truncate context if too long, keeping room for the final prompt
+  const maxContextLen = IMG_PROMPT_MAX_CHARS - lastPrompt.length - 50
+  if (context.length > maxContextLen) {
+    context = '...' + context.slice(-(maxContextLen - 3))
+  }
+
+  return `[Conversation]\n${context}\n\n[Generate image]\n${lastPrompt}`
+}
+
 function toOpenAIMessages(
   messages: Parameters<ChatModelAdapter['run']>[0]['messages'],
 ): ChatCompletionMessageParam[] {
@@ -118,13 +161,7 @@ function chatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
 function imageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
-      const lastUser = [...messages].reverse().find((m) => m.role === 'user')
-      const prompt = lastUser
-        ? lastUser.content
-            .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-            .map((p) => p.text)
-            .join(' ')
-        : ''
+      const prompt = buildImagePrompt(messages)
 
       if (!prompt.trim()) {
         yield {
