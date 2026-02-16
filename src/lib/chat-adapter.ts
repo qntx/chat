@@ -71,29 +71,32 @@ function buildImagePrompt(messages: Parameters<ChatModelAdapter['run']>[0]['mess
 
 function toOpenAIMessages(
   messages: Parameters<ChatModelAdapter['run']>[0]['messages'],
+  canAcceptImages: boolean,
 ): ChatCompletionMessageParam[] {
   return messages.map((msg): ChatCompletionMessageParam => {
     if (msg.role === 'user') {
       const parts = msg.content
 
-      // Extract image parts from attachments
+      // Extract image parts from attachments (only if model supports vision)
       const attImages: string[] = []
-      if ('attachments' in msg && Array.isArray(msg.attachments)) {
+      if (canAcceptImages && 'attachments' in msg && Array.isArray(msg.attachments)) {
         for (const att of msg.attachments)
           for (const c of att.content ?? [])
             if (c.type === 'image') attImages.push((c as { image: string }).image)
       }
 
-      // Text-only shortcut
-      if (attImages.length === 0 && parts.length === 1 && parts[0]!.type === 'text') {
-        return { role: 'user', content: parts[0]!.text }
+      // Text-only shortcut (also used when model doesn't support vision)
+      if ((!canAcceptImages || attImages.length === 0) && parts.every((p) => p.type === 'text')) {
+        return { role: 'user', content: extractText(parts) }
       }
 
-      const content = parts.map((p) =>
-        p.type === 'image'
-          ? { type: 'image_url' as const, image_url: { url: p.image } }
-          : { type: 'text' as const, text: p.type === 'text' ? p.text : '' },
-      )
+      const content = parts
+        .filter((p) => canAcceptImages || p.type !== 'image')
+        .map((p) =>
+          p.type === 'image'
+            ? { type: 'image_url' as const, image_url: { url: p.image } }
+            : { type: 'text' as const, text: p.type === 'text' ? p.text : '' },
+        )
       for (const url of attImages) {
         content.push({ type: 'image_url' as const, image_url: { url } })
       }
@@ -114,6 +117,7 @@ export function createX402ChatAdapter(
   fetchFn: typeof globalThis.fetch,
   model: string = DEFAULT_MODEL,
   modelType: ModelType = 'chat',
+  canAcceptImages: boolean = true,
 ): ChatModelAdapter {
   const openai = new OpenAI({
     apiKey: 'x402',
@@ -122,10 +126,12 @@ export function createX402ChatAdapter(
     dangerouslyAllowBrowser: true,
   })
 
-  return modelType === 'image' ? imageAdapter(openai, model) : chatAdapter(openai, model)
+  return modelType === 'image'
+    ? imageAdapter(openai, model)
+    : chatAdapter(openai, model, canAcceptImages)
 }
 
-function chatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
+function chatAdapter(openai: OpenAI, model: string, canAcceptImages: boolean): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       try {
@@ -133,7 +139,7 @@ function chatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
         yield { content: [text('')] }
 
         const stream = await openai.chat.completions.create(
-          { model, messages: toOpenAIMessages(messages), stream: true },
+          { model, messages: toOpenAIMessages(messages, canAcceptImages), stream: true },
           { signal: abortSignal },
         )
 

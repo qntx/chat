@@ -36,6 +36,7 @@ const ComposerAttachmentImage: FC = () => {
 
 export const Composer: FC = () => {
   const { imageMode, toggleImageMode, currentModel } = useModel()
+  const canAttach = currentModel?.canAcceptImages ?? true
   const showImageToggle = currentModel?.canGenerateImages && currentModel.type !== 'image'
 
   return (
@@ -53,14 +54,16 @@ export const Composer: FC = () => {
       <div className="relative mx-2 mb-2 flex items-center justify-between gap-2">
         {/* Left: attach image + image mode toggle */}
         <div className="flex items-center gap-1">
-          <ComposerPrimitive.AddAttachment asChild>
-            <button
-              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              aria-label="Attach image"
-            >
-              <ImagePlusIcon className="size-4" />
-            </button>
-          </ComposerPrimitive.AddAttachment>
+          {canAttach && (
+            <ComposerPrimitive.AddAttachment asChild>
+              <button
+                className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                aria-label="Attach image"
+              >
+                <ImagePlusIcon className="size-4" />
+              </button>
+            </ComposerPrimitive.AddAttachment>
+          )}
           {showImageToggle && (
             <button
               type="button"

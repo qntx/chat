@@ -17,6 +17,8 @@ export interface ModelInfo {
   type: ModelType
   /** Whether this model can also generate images (via images.generate). */
   canGenerateImages: boolean
+  /** Whether this model accepts image inputs (vision capability). */
+  canAcceptImages: boolean
   /** USDC price per message (e.g. "0.01") */
   price: string | null
   /** Discounted price if caller qualifies (e.g. "0.008") */
@@ -45,42 +47,40 @@ interface ModelContextValue {
   pricing: PricingData
 }
 
-/** Patterns that identify models to completely exclude (not useful in chat UI) */
-const EXCLUDE_PATTERNS = [
-  'embedding',
-  'tts',
-  'whisper',
-  'aqa',
-  'audio',
-  'deep-research',
-  'computer-use',
-]
-
-/** Dedicated image-only models that use images.generate (cannot chat). */
-const IMAGE_ONLY_PATTERNS = ['dall-e', 'gpt-image', 'flux', 'stable-diffusion', 'midjourney']
-
-/** Models that can generate images (via images.generate) but also support chat. */
-const IMAGE_CAPABLE_PATTERNS = ['image']
-
-/** Classify model: type determines the primary API, canGenerateImages flags image capability. */
-function classifyModel(m: { id: string; architecture?: { output_modalities?: string[] } }): {
-  type: ModelType
-  canGenerateImages: boolean
-} {
+/**
+ * Classify model capabilities purely from API metadata.
+ *
+ * When metadata is missing (e.g. qntx/ models via Bifrost), safe defaults
+ * are used: text-only chat, no image generation, no vision input.
+ * Zero name-matching heuristics — all capability flags come from the
+ * upstream `architecture.input_modalities` / `output_modalities` arrays.
+ */
+function classifyModel(m: {
+  architecture?: { input_modalities?: string[]; output_modalities?: string[] }
+}): { type: ModelType; canGenerateImages: boolean; canAcceptImages: boolean } {
+  const inp = m.architecture?.input_modalities
   const out = m.architecture?.output_modalities
-  if (out?.length) {
-    const hasImage = out.includes('image')
-    const hasText = out.includes('text')
-    if (hasImage && !hasText) return { type: 'image', canGenerateImages: true }
-    return { type: 'chat', canGenerateImages: hasImage }
+
+  const hasImageOut = out?.includes('image') ?? false
+  const hasTextOut = out?.includes('text') ?? true // default: assume text output
+  const canAcceptImages = inp?.includes('image') ?? false
+
+  return {
+    type: hasImageOut && !hasTextOut ? 'image' : 'chat',
+    canGenerateImages: hasImageOut,
+    canAcceptImages,
   }
-  // Fallback: name-based heuristic
-  const id = m.id.toLowerCase()
-  if (IMAGE_ONLY_PATTERNS.some((p) => id.includes(p)))
-    return { type: 'image', canGenerateImages: true }
-  if (IMAGE_CAPABLE_PATTERNS.some((p) => id.includes(p)))
-    return { type: 'chat', canGenerateImages: true }
-  return { type: 'chat', canGenerateImages: false }
+}
+
+/**
+ * Whether a model should be shown in the chat UI.
+ * Excludes models whose metadata explicitly shows no text/image output
+ * (e.g. embedding, tts, audio-only models).
+ */
+function isUsableModel(m: { architecture?: { output_modalities?: string[] } }): boolean {
+  const out = m.architecture?.output_modalities
+  if (!out?.length) return true // No metadata → keep (most are usable chat models)
+  return out.includes('text') || out.includes('image')
 }
 
 const ModelContext = createContext<ModelContextValue | null>(null)
@@ -116,8 +116,10 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         ])
 
         const modelsJson = await modelsRes.json()
-        const data: { id: string; architecture?: { output_modalities?: string[] } }[] =
-          modelsJson.data ?? []
+        const data: {
+          id: string
+          architecture?: { input_modalities?: string[]; output_modalities?: string[] }
+        }[] = modelsJson.data ?? []
 
         // Build pricing lookup map: model → { price, discountedPrice }
         const priceMap = new Map<string, { price: string; discountedPrice?: string }>()
@@ -139,15 +141,16 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         }
 
         const chatModels: ModelInfo[] = data
-          .filter((m) => !EXCLUDE_PATTERNS.some((p) => m.id.toLowerCase().includes(p)))
+          .filter(isUsableModel)
           .map((m) => {
-            const { type, canGenerateImages } = classifyModel(m)
+            const { type, canGenerateImages, canAcceptImages } = classifyModel(m)
             const pm = priceMap.get(m.id)
             return {
               id: m.id,
               provider: m.id.includes('/') ? m.id.split('/')[0]! : 'unknown',
               type,
               canGenerateImages,
+              canAcceptImages,
               price: pm?.price ?? pricingData.defaultPrice,
               discountedPrice: pm?.discountedPrice ?? pricingData.defaultDiscountedPrice,
             }

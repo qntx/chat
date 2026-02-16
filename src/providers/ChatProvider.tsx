@@ -34,14 +34,15 @@ const imageAttachmentAdapter = new SimpleImageAttachmentAdapter()
 /** Inner hook that creates a LocalRuntime (used by the thread list runtime) */
 function useInnerRuntime() {
   const { fetchWithPayment } = useX402Fetch()
-  const { selectedModel, selectedModelType } = useModel()
+  const { selectedModel, selectedModelType, currentModel } = useModel()
+  const canAcceptImages = currentModel?.canAcceptImages ?? true
 
   const adapter = useMemo<ChatModelAdapter>(
     () =>
       fetchWithPayment
-        ? createX402ChatAdapter(fetchWithPayment, selectedModel, selectedModelType)
+        ? createX402ChatAdapter(fetchWithPayment, selectedModel, selectedModelType, canAcceptImages)
         : disconnectedAdapter,
-    [fetchWithPayment, selectedModel, selectedModelType],
+    [fetchWithPayment, selectedModel, selectedModelType, canAcceptImages],
   )
 
   return useLocalRuntime(adapter, {
