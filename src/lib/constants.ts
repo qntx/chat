@@ -8,7 +8,7 @@ export const DEFAULT_MODEL = 'openai/gpt-5.2'
 export const MAX_THREAD_WIDTH = '42rem'
 
 /** GitHub repository URL */
-export const GITHUB_URL = 'https://github.com/qntx'
+export const GITHUB_URL = 'https://github.com/qntx/chat'
 
 /** nad.fun token page — users can buy QNTX here to unlock discounts */
 export const QNTX_TOKEN_URL = 'https://nad.fun/tokens/0x4Daab757f758689Afbb3848A037bd4A2ae107777'
