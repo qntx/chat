@@ -49,13 +49,10 @@ export function useDiscount(walletAddress: string | null) {
   useEffect(() => {
     if (!walletAddress) return
 
-    // Already resolved — apply immediately
+    // Already resolved — state was set during render via useState initializer
+    // or the render-time address change handler above
     const existing = cache.get(walletAddress)
-    if (existing && existing.info !== undefined) {
-      setInfo(existing.info)
-      setLoading(false)
-      return
-    }
+    if (existing && existing.info !== undefined) return
 
     let cancelled = false
 
