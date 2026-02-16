@@ -64,7 +64,7 @@ function toOpenAIMessages(
 /**
  * Create a ChatModelAdapter backed by the OpenAI SDK with x402-enhanced fetch.
  *
- * Routing: chat/multimodal → chat.completions, image → images.generate.
+ * Routing: chat → chat.completions, image → images.generate.
  */
 export function createX402ChatAdapter(
   fetchFn: typeof globalThis.fetch,
@@ -78,56 +78,36 @@ export function createX402ChatAdapter(
     dangerouslyAllowBrowser: true,
   })
 
-  return modelType === 'image'
-    ? imageAdapter(openai, model)
-    : chatAdapter(openai, model, modelType === 'multimodal')
+  return modelType === 'image' ? imageAdapter(openai, model) : chatAdapter(openai, model)
 }
 
-function chatAdapter(openai: OpenAI, model: string, multimodal: boolean): ChatModelAdapter {
+function chatAdapter(openai: OpenAI, model: string): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       try {
         setPaymentPhase('signing')
         yield { content: [text('')] }
 
-        // `modalities` with 'image' is a provider extension (OpenRouter / Gemini)
         const stream = await openai.chat.completions.create(
-          {
-            model,
-            messages: toOpenAIMessages(messages),
-            stream: true,
-            ...(multimodal && { modalities: ['text', 'image'] }),
-          } as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+          { model, messages: toOpenAIMessages(messages), stream: true },
           { signal: abortSignal },
         )
 
         let acc = ''
-        const imgs: string[] = []
 
         for await (const chunk of stream) {
-          const delta = chunk.choices[0]?.delta
-
-          if (delta?.content) {
-            if (!acc && !imgs.length) setPaymentPhase('streaming')
-            acc += delta.content
-            yield { content: mixedContent(acc, imgs) }
-          }
-
-          // Native image content (OpenRouter multimodal extension)
-          const di = (delta as unknown as Record<string, unknown> | undefined)?.images as
-            | { image_url?: { url?: string } }[]
-            | undefined
-          if (di) {
-            if (!acc && !imgs.length) setPaymentPhase('streaming')
-            for (const i of di) if (i.image_url?.url) imgs.push(i.image_url.url)
-            yield { content: mixedContent(acc, imgs) }
+          if (chunk.choices[0]?.delta?.content) {
+            if (!acc) setPaymentPhase('streaming')
+            acc += chunk.choices[0].delta.content
+            yield { content: [text(acc)] }
           }
         }
 
         setPaymentPhase('idle')
-        const final = mixedContent(acc, imgs)
-        if (!final.length) final.push(text('🤷 No response received.'))
-        yield { content: final, status: COMPLETE }
+        yield {
+          content: [text(acc || '🤷 No response received.')],
+          status: COMPLETE,
+        }
       } catch (err) {
         yield* fail('[x402] Chat request failed', err)
       }
@@ -183,14 +163,6 @@ function imageAdapter(openai: OpenAI, model: string): ChatModelAdapter {
       }
     },
   }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────
-
-function mixedContent(t: string, imgs: string[]): ContentPart[] {
-  const parts: ContentPart[] = imgs.map(image)
-  if (t) parts.push(text(t))
-  return parts
 }
 
 async function* fail(label: string, err: unknown) {

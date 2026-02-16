@@ -1,5 +1,5 @@
 import { ComposerPrimitive, AttachmentPrimitive, AuiIf, useAuiState } from '@assistant-ui/react'
-import { SendIcon, SquareIcon, ImagePlusIcon, XIcon } from 'lucide-react'
+import { SendIcon, SquareIcon, ImagePlusIcon, ImageIcon, XIcon } from 'lucide-react'
 import { useMemo, type FC } from 'react'
 import { ModelPicker } from '@/components/ModelPicker'
 import { useModel } from '@/providers/ModelProvider'
@@ -34,57 +34,78 @@ const ComposerAttachmentImage: FC = () => {
   )
 }
 
-export const Composer: FC = () => (
-  <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-2xl border border-input bg-background px-1 pt-2 outline-none transition-shadow focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
-    {/* Attachment previews */}
-    <div className="flex flex-wrap gap-2 px-3 pt-1 empty:hidden">
-      <ComposerPrimitive.Attachments components={{ Image: ComposerAttachmentImage }} />
-    </div>
-    <ComposerPrimitive.Input
-      placeholder="Send a message..."
-      className="mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm outline-none placeholder:text-muted-foreground"
-      rows={1}
-      autoFocus
-    />
-    <div className="relative mx-2 mb-2 flex items-center justify-between gap-2">
-      {/* Left: attach image */}
-      <ComposerPrimitive.AddAttachment asChild>
-        <button
-          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          aria-label="Attach image"
-        >
-          <ImagePlusIcon className="size-4" />
-        </button>
-      </ComposerPrimitive.AddAttachment>
-      {/* Right: price + model picker + send/stop */}
-      <div className="flex items-center gap-2">
-        <CurrentPrice />
-        <ModelPicker />
-        <AuiIf condition={(s) => s.thread.isRunning}>
-          <ComposerPrimitive.Cancel asChild>
-            <button className={SUBMIT_BTN} aria-label="Stop">
-              <SquareIcon className="size-3.5" fill="currentColor" />
-            </button>
-          </ComposerPrimitive.Cancel>
-        </AuiIf>
-        <AuiIf condition={(s) => !s.thread.isRunning}>
-          <ComposerPrimitive.Send asChild>
-            <button className={`${SUBMIT_BTN} disabled:opacity-20`} aria-label="Send">
-              <SendIcon className="size-3.5" />
-            </button>
-          </ComposerPrimitive.Send>
-        </AuiIf>
+export const Composer: FC = () => {
+  const { imageMode, toggleImageMode, currentModel } = useModel()
+  const showImageToggle = currentModel?.canGenerateImages && currentModel.type !== 'image'
+
+  return (
+    <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-2xl border border-input bg-background px-1 pt-2 outline-none transition-shadow focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
+      {/* Attachment previews */}
+      <div className="flex flex-wrap gap-2 px-3 pt-1 empty:hidden">
+        <ComposerPrimitive.Attachments components={{ Image: ComposerAttachmentImage }} />
       </div>
-    </div>
-  </ComposerPrimitive.Root>
-)
+      <ComposerPrimitive.Input
+        placeholder={imageMode ? 'Describe the image to generate...' : 'Send a message...'}
+        className="mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm outline-none placeholder:text-muted-foreground"
+        rows={1}
+        autoFocus
+      />
+      <div className="relative mx-2 mb-2 flex items-center justify-between gap-2">
+        {/* Left: attach image + image mode toggle */}
+        <div className="flex items-center gap-1">
+          <ComposerPrimitive.AddAttachment asChild>
+            <button
+              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              aria-label="Attach image"
+            >
+              <ImagePlusIcon className="size-4" />
+            </button>
+          </ComposerPrimitive.AddAttachment>
+          {showImageToggle && (
+            <button
+              type="button"
+              onClick={toggleImageMode}
+              className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
+                imageMode
+                  ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+              }`}
+              aria-label={imageMode ? 'Switch to chat mode' : 'Switch to image generation'}
+              title={imageMode ? 'Image mode ON — click to chat' : 'Generate image'}
+            >
+              <ImageIcon className="size-4" />
+            </button>
+          )}
+        </div>
+        {/* Right: price + model picker + send/stop */}
+        <div className="flex items-center gap-2">
+          <CurrentPrice />
+          <ModelPicker />
+          <AuiIf condition={(s) => s.thread.isRunning}>
+            <ComposerPrimitive.Cancel asChild>
+              <button className={SUBMIT_BTN} aria-label="Stop">
+                <SquareIcon className="size-3.5" fill="currentColor" />
+              </button>
+            </ComposerPrimitive.Cancel>
+          </AuiIf>
+          <AuiIf condition={(s) => !s.thread.isRunning}>
+            <ComposerPrimitive.Send asChild>
+              <button className={`${SUBMIT_BTN} disabled:opacity-20`} aria-label="Send">
+                <SendIcon className="size-3.5" />
+              </button>
+            </ComposerPrimitive.Send>
+          </AuiIf>
+        </div>
+      </div>
+    </ComposerPrimitive.Root>
+  )
+}
 
 /** Compact price tag showing the current model's cost per message */
 const CurrentPrice: FC = () => {
-  const { models, selectedModel, pricing } = useModel()
-  const current = models.find((m) => m.id === selectedModel)
+  const { currentModel, pricing } = useModel()
 
-  const price = current?.discountedPrice ?? current?.price ?? pricing.defaultPrice
+  const price = currentModel?.discountedPrice ?? currentModel?.price ?? pricing.defaultPrice
   if (!price) return null
 
   return (

@@ -5,7 +5,7 @@ import { useClickOutside } from '@/hooks/use-click-outside'
 
 /** Compact model selector shown in the composer action bar. */
 export const ModelPicker: FC = () => {
-  const { models, isLoading, selectedModel, setSelectedModel } = useModel()
+  const { models, isLoading, selectedModel, setSelectedModel, currentModel } = useModel()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -27,8 +27,11 @@ export const ModelPicker: FC = () => {
     return models.filter((m) => m.id.toLowerCase().includes(q))
   }, [models, query])
 
-  const current = models.find((m) => m.id === selectedModel)
-  const displayName = current ? stripPrefix(current.id) : isLoading ? 'Loading…' : 'Select model'
+  const displayName = currentModel
+    ? stripPrefix(currentModel.id)
+    : isLoading
+      ? 'Loading…'
+      : 'Select model'
 
   return (
     <div ref={containerRef} className="relative">
@@ -89,12 +92,15 @@ const GroupedModelList: FC<{
   selected: string
   onSelect: (id: string) => void
 }> = ({ models, selected, onSelect }) => {
-  const groups = new Map<string, ModelInfo[]>()
-  for (const m of models) {
-    const list = groups.get(m.provider) ?? []
-    list.push(m)
-    groups.set(m.provider, list)
-  }
+  const groups = useMemo(() => {
+    const map = new Map<string, ModelInfo[]>()
+    for (const m of models) {
+      const list = map.get(m.provider) ?? []
+      list.push(m)
+      map.set(m.provider, list)
+    }
+    return map
+  }, [models])
 
   return (
     <>
@@ -113,7 +119,7 @@ const GroupedModelList: FC<{
               }`}
             >
               <span className="flex-1 truncate">{stripPrefix(m.id)}</span>
-              <ModelBadge type={m.type} />
+              <ModelBadge model={m} />
               <ModelPrice price={m.price} discountedPrice={m.discountedPrice} />
               {m.id === selected && <CheckIcon className="size-3 shrink-0" />}
             </button>
@@ -124,19 +130,19 @@ const GroupedModelList: FC<{
   )
 }
 
-/** Capability badge showing what a model can do. */
-const ModelBadge: FC<{ type: ModelInfo['type'] }> = ({ type }) => {
-  if (type === 'multimodal') {
-    return (
-      <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
-        Chat+IMG
-      </span>
-    )
-  }
-  if (type === 'image') {
+/** Capability badge: image-only → IMG, chat with image capability → Chat+IMG. */
+const ModelBadge: FC<{ model: ModelInfo }> = ({ model }) => {
+  if (model.type === 'image') {
     return (
       <span className="shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
         IMG
+      </span>
+    )
+  }
+  if (model.canGenerateImages) {
+    return (
+      <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
+        Chat+IMG
       </span>
     )
   }

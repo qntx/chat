@@ -1,12 +1,22 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from 'react'
 import { GATEWAY_URL, DEFAULT_MODEL } from '@/lib/constants'
 
-export type ModelType = 'chat' | 'image' | 'multimodal'
+export type ModelType = 'chat' | 'image'
 
 export interface ModelInfo {
   id: string
   provider: string
   type: ModelType
+  /** Whether this model can also generate images (via images.generate). */
+  canGenerateImages: boolean
   /** USDC price per message (e.g. "0.01") */
   price: string | null
   /** Discounted price if caller qualifies (e.g. "0.008") */
@@ -24,8 +34,14 @@ interface ModelContextValue {
   models: ModelInfo[]
   isLoading: boolean
   selectedModel: string
+  /** The full ModelInfo for the currently selected model. */
+  currentModel: ModelInfo | undefined
+  /** Effective type: 'image' when imageMode is ON for a capable model. */
   selectedModelType: ModelType
   setSelectedModel: (id: string) => void
+  /** Whether image generation mode is active (Chat+IMG models only). */
+  imageMode: boolean
+  toggleImageMode: () => void
   pricing: PricingData
 }
 
@@ -40,23 +56,31 @@ const EXCLUDE_PATTERNS = [
   'computer-use',
 ]
 
-/** Dedicated image-generation models that use images.generate (not chat.completions). */
-const IMAGE_GEN_PATTERNS = ['dall-e', 'gpt-image', 'flux', 'stable-diffusion', 'midjourney']
+/** Dedicated image-only models that use images.generate (cannot chat). */
+const IMAGE_ONLY_PATTERNS = ['dall-e', 'gpt-image', 'flux', 'stable-diffusion', 'midjourney']
 
-/** Classify model type from API metadata or name-based fallback. */
-function classifyModel(m: {
-  id: string
-  architecture?: { output_modalities?: string[] }
-}): ModelType {
+/** Models that can generate images (via images.generate) but also support chat. */
+const IMAGE_CAPABLE_PATTERNS = ['image']
+
+/** Classify model: type determines the primary API, canGenerateImages flags image capability. */
+function classifyModel(m: { id: string; architecture?: { output_modalities?: string[] } }): {
+  type: ModelType
+  canGenerateImages: boolean
+} {
   const out = m.architecture?.output_modalities
   if (out?.length) {
     const hasImage = out.includes('image')
-    return hasImage && out.includes('text') ? 'multimodal' : hasImage ? 'image' : 'chat'
+    const hasText = out.includes('text')
+    if (hasImage && !hasText) return { type: 'image', canGenerateImages: true }
+    return { type: 'chat', canGenerateImages: hasImage }
   }
   // Fallback: name-based heuristic
   const id = m.id.toLowerCase()
-  if (IMAGE_GEN_PATTERNS.some((p) => id.includes(p))) return 'image'
-  return id.includes('image') ? 'multimodal' : 'chat'
+  if (IMAGE_ONLY_PATTERNS.some((p) => id.includes(p)))
+    return { type: 'image', canGenerateImages: true }
+  if (IMAGE_CAPABLE_PATTERNS.some((p) => id.includes(p)))
+    return { type: 'chat', canGenerateImages: true }
+  return { type: 'chat', canGenerateImages: false }
 }
 
 const ModelContext = createContext<ModelContextValue | null>(null)
@@ -77,6 +101,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
   const [models, setModels] = useState<ModelInfo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
+  const [imageMode, setImageMode] = useState(false)
   const [pricing, setPricing] = useState<PricingData>(DEFAULT_PRICING)
 
   useEffect(() => {
@@ -116,12 +141,13 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         const chatModels: ModelInfo[] = data
           .filter((m) => !EXCLUDE_PATTERNS.some((p) => m.id.toLowerCase().includes(p)))
           .map((m) => {
-            const type = classifyModel(m)
+            const { type, canGenerateImages } = classifyModel(m)
             const pm = priceMap.get(m.id)
             return {
               id: m.id,
               provider: m.id.includes('/') ? m.id.split('/')[0]! : 'unknown',
               type,
+              canGenerateImages,
               price: pm?.price ?? pricingData.defaultPrice,
               discountedPrice: pm?.discountedPrice ?? pricingData.defaultDiscountedPrice,
             }
@@ -148,11 +174,49 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const selectedModelType: ModelType = models.find((m) => m.id === selectedModel)?.type ?? 'chat'
+  const currentModel = useMemo(
+    () => models.find((m) => m.id === selectedModel),
+    [models, selectedModel],
+  )
+
+  const canImage = currentModel?.canGenerateImages ?? false
+  const selectedModelType: ModelType =
+    currentModel?.type === 'image' ? 'image' : imageMode && canImage ? 'image' : 'chat'
+
+  const toggleImageMode = useCallback(() => setImageMode((v) => !v), [])
+
+  const handleSelectModel = useCallback(
+    (id: string) => {
+      setSelectedModel(id)
+      if (!models.find((m) => m.id === id)?.canGenerateImages) setImageMode(false)
+    },
+    [models],
+  )
 
   const value = useMemo<ModelContextValue>(
-    () => ({ models, isLoading, selectedModel, selectedModelType, setSelectedModel, pricing }),
-    [models, isLoading, selectedModel, selectedModelType, pricing],
+    () => ({
+      models,
+      isLoading,
+      selectedModel,
+      currentModel,
+      selectedModelType,
+      setSelectedModel: handleSelectModel,
+      imageMode: imageMode && canImage,
+      toggleImageMode,
+      pricing,
+    }),
+    [
+      models,
+      isLoading,
+      selectedModel,
+      currentModel,
+      selectedModelType,
+      handleSelectModel,
+      imageMode,
+      canImage,
+      toggleImageMode,
+      pricing,
+    ],
   )
 
   return <ModelContext value={value}>{children}</ModelContext>
