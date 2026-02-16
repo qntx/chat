@@ -13,15 +13,26 @@ export interface DiscountInfo {
 }
 
 /**
+ * Module-level cache keyed by address so the same address is fetched only once.
+ * `info` is `undefined` while the request is in-flight, then set to the result
+ * (which may be `null` if no discount is configured).
+ */
+const cache = new Map<string, { info: DiscountInfo | null | undefined; promise: Promise<void> }>()
+
+/**
  * Hook that queries the gateway for the caller's token-holding discount.
  *
- * Fetches once when `walletAddress` becomes non-null, then caches the
- * result until the address changes.  Returns `null` while loading or
- * if the gateway has no discount configured.
+ * Fetches once per address globally and caches the result at module level,
+ * so multiple consumers (DiscountBadge, ThreadWelcome, SidebarPromo) that
+ * query the same address share a single request with no redundant fetches.
+ *
+ * Returns `null` while loading or if the gateway has no discount configured.
  */
 export function useDiscount(walletAddress: string | null) {
-  const [info, setInfo] = useState<DiscountInfo | null>(null)
-  const [loading, setLoading] = useState(!!walletAddress)
+  const cached = walletAddress ? cache.get(walletAddress) : undefined
+  const resolved = cached?.info !== undefined
+  const [info, setInfo] = useState<DiscountInfo | null>(cached?.info ?? null)
+  const [loading, setLoading] = useState(walletAddress ? !resolved : false)
   const [prevAddress, setPrevAddress] = useState(walletAddress)
 
   // Reset state when wallet address changes during render
@@ -29,32 +40,52 @@ export function useDiscount(walletAddress: string | null) {
   // see: https://react.dev/learn/you-might-not-need-an-effect)
   if (walletAddress !== prevAddress) {
     setPrevAddress(walletAddress)
-    setInfo(null)
-    setLoading(!!walletAddress)
+    const next = walletAddress ? cache.get(walletAddress) : undefined
+    const nextResolved = next?.info !== undefined
+    setInfo(next?.info ?? null)
+    setLoading(walletAddress ? !nextResolved : false)
   }
 
   useEffect(() => {
     if (!walletAddress) return
 
+    // Already resolved — apply immediately
+    const existing = cache.get(walletAddress)
+    if (existing && existing.info !== undefined) {
+      setInfo(existing.info)
+      setLoading(false)
+      return
+    }
+
     let cancelled = false
 
-    fetch(`${GATEWAY_URL}/v1/discount?address=${encodeURIComponent(walletAddress)}`)
-      .then((res) => {
-        // Non-2xx responses (404 = not configured, 502 = query failed)
-        // are treated as "no discount available".
-        if (!res.ok) return null
-        return res.json()
-      })
-      .then((data) => {
-        if (cancelled) return
-        setInfo(data as DiscountInfo | null)
-      })
-      .catch(() => {
-        if (!cancelled) setInfo(null)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    // Deduplicate concurrent fetches for the same address
+    if (!existing) {
+      const promise = fetch(
+        `${GATEWAY_URL}/v1/discount?address=${encodeURIComponent(walletAddress)}`,
+      )
+        .then((res) => {
+          if (!res.ok) return null
+          return res.json()
+        })
+        .then((data) => {
+          const entry = cache.get(walletAddress)
+          if (entry) entry.info = (data as DiscountInfo) ?? null
+        })
+        .catch(() => {
+          const entry = cache.get(walletAddress)
+          if (entry) entry.info = null
+        })
+
+      cache.set(walletAddress, { info: undefined, promise })
+    }
+
+    cache.get(walletAddress)!.promise.then(() => {
+      if (!cancelled) {
+        setInfo(cache.get(walletAddress)?.info ?? null)
+        setLoading(false)
+      }
+    })
 
     return () => {
       cancelled = true
