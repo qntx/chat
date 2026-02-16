@@ -1,6 +1,6 @@
 import { MessagePrimitive, ActionBarPrimitive, useAuiState } from '@assistant-ui/react'
 import { CopyIcon, CheckIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react'
-import { forwardRef, type FC } from 'react'
+import { forwardRef, useState, type FC } from 'react'
 import { BranchPicker } from '@/components/BranchPicker'
 import { MarkdownText } from '@/components/Markdown'
 import { OnboardingGuide } from '@/components/OnboardingGuide'
@@ -9,6 +9,7 @@ import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { usePaymentPhase } from '@/lib/payment-phase'
 import { WALLET_PROMPT_MARKER, MAX_THREAD_WIDTH } from '@/lib/constants'
 import { ACTION_BTN } from '@/lib/styles'
+import { ImageLightbox } from '@/components/ImageLightbox'
 
 /**
  * Detects special markers and renders contextual UI:
@@ -51,18 +52,28 @@ const ReloadButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRe
 )
 ReloadButton.displayName = 'ReloadButton'
 
-/** Renders an image content part in an assistant message. */
-const AssistantImage: FC<{ image: string }> = ({ image }) => (
-  <div className="my-2">
-    <a href={image} target="_blank" rel="noopener noreferrer">
-      <img
-        src={image}
-        alt="Generated image"
-        className="max-h-[512px] max-w-full rounded-xl object-contain shadow-md transition-opacity hover:opacity-90"
-      />
-    </a>
-  </div>
-)
+/** Renders an image content part with lightbox preview on click. */
+const AssistantImage: FC<{ image: string }> = ({ image }) => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="my-2">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="cursor-pointer border-none bg-transparent p-0"
+        aria-label="View image"
+      >
+        <img
+          src={image}
+          alt="Generated image"
+          className="max-h-[512px] max-w-full rounded-xl object-contain shadow-md transition-opacity hover:opacity-90"
+        />
+      </button>
+      {open && <ImageLightbox src={image} onClose={() => setOpen(false)} />}
+    </div>
+  )
+}
 
 export const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
