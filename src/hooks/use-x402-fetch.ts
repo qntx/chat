@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useWalletClient } from 'wagmi'
+import { usePublicClient, useWalletClient } from 'wagmi'
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch'
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm'
 import { createSanitizedFetch } from '@/lib/fetch'
@@ -14,12 +14,15 @@ import { setPaymentPhase } from '@/lib/payment-phase'
  */
 export function useX402Fetch() {
   const { data: walletClient } = useWalletClient()
+  const publicClient = usePublicClient()
 
   const fetchWithPayment = useMemo(() => {
-    if (!walletClient?.account) return null
+    if (!walletClient?.account || !publicClient) return null
 
     const signer = toClientEvmSigner({
       address: walletClient.account.address,
+      readContract: (args) =>
+        publicClient.readContract(args as Parameters<typeof publicClient.readContract>[0]),
       signTypedData: (msg) =>
         walletClient.signTypedData({
           account: walletClient.account!,
@@ -69,7 +72,7 @@ export function useX402Fetch() {
     }
 
     return wrapFetchWithPayment(fetchWithWalletHeader, client)
-  }, [walletClient])
+  }, [walletClient, publicClient])
 
   return {
     fetchWithPayment,
